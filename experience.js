@@ -10,13 +10,15 @@ const EXPERIENCE_CONFIG = {
     phases: {
       mystery: 8000,
       buildup: 5000,
-      reveal: 3000,
+      duel: 6000, // Nova fase: Duelo de Possibilidades
+      reveal: 8000, // Aumentado de 3000 para 8000ms (8 segundos)
       celebration: 10000,
     },
   },
   colors: {
     mystery: ['#1e1e2e', '#2d1b69', '#11047a'],
     buildup: ['#ff6b6b', '#ee5a24', '#f9ca24'],
+    duel: ['#8b5cf6', '#3b82f6', '#ec4899', '#10b981'], // Cores neutras para o duelo
     reveal: ['#ff69b4', '#ff1493', '#ffc0cb', '#ffb6c1'],
     celebration: ['#ff69b4', '#87ceeb', '#98fb98', '#dda0dd'],
   },
@@ -28,9 +30,11 @@ class RevealExperience {
     this.soundGenerator = new SoundGenerator();
     this.particles = [];
     this.animationId = null;
+    this.celebrationMusic = null;
 
     this.initializeElements();
     this.bindEvents();
+    this.loadCelebrationMusic();
   }
 
   initializeElements() {
@@ -48,6 +52,14 @@ class RevealExperience {
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
+  }
+
+  loadCelebrationMusic() {
+    this.celebrationMusic = new Audio(
+      './O Espírito da Coisa - Ligeiramente Grávida [zdeKhxfiSVs].mp3'
+    );
+    this.celebrationMusic.preload = 'auto';
+    this.celebrationMusic.volume = 0.7;
   }
 
   vibrate(pattern = [100, 50, 100]) {
@@ -347,10 +359,361 @@ class RevealExperience {
         this.vibrate([200, 100, 200]);
       } else {
         clearInterval(finalInterval);
-        // Grande reveal!
-        this.startRevealPhase();
+        // Ir para o duelo de possibilidades antes do reveal!
+        this.startDuelPhase();
       }
     }, 1000);
+  }
+
+  startDuelPhase() {
+    this.currentPhase = 'duel';
+
+    this.experienceScreen.innerHTML = `
+      <div class="duel-phase relative h-full overflow-hidden">
+        <!-- Fundo dinâmico para o duelo -->
+        <div class="absolute inset-0 duel-bg"></div>
+        
+        <!-- Efeitos de energia -->
+        <div id="energyEffects" class="absolute inset-0"></div>
+        
+        <!-- Conteúdo principal -->
+        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
+          <div class="duel-content max-w-6xl mx-auto">
+            <!-- Título dramático -->
+            <h2 class="dancing-script text-4xl md:text-6xl text-white mb-8 duel-title">
+              O Duelo Final das Possibilidades
+            </h2>
+            
+            <p class="poppins text-xl md:text-2xl text-white/90 mb-12">
+              Duas almas disputam para vir ao mundo... Quem será escolhida pelo destino?
+            </p>
+            
+            <!-- Container das imagens do duelo -->
+            <div class="duel-container flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 mb-8">
+              <!-- Lado Menino -->
+              <div class="duel-side menino-side">
+                <div class="image-container relative">
+                  <div class="energy-aura menino-aura"></div>
+                  <img src="menino.jpeg" alt="Possível Menino" class="duel-image menino-image rounded-full border-4 border-blue-400 shadow-2xl" />
+                  <div class="image-overlay menino-overlay"></div>
+                </div>
+                <h3 class="dancing-script text-2xl md:text-3xl text-blue-300 mt-4">Nosso Príncipe</h3>
+                <div class="power-indicator menino-power">
+                  <div class="power-bar menino-bar"></div>
+                </div>
+              </div>
+              
+              <!-- Versus -->
+              <div class="versus-container">
+                <div class="versus-symbol text-6xl md:text-8xl text-white font-bold">
+                  ⚡ VS ⚡
+                </div>
+                <div class="versus-energy"></div>
+              </div>
+              
+              <!-- Lado Menina -->
+              <div class="duel-side menina-side">
+                <div class="image-container relative">
+                  <div class="energy-aura menina-aura"></div>
+                  <img src="menina.jpeg" alt="Possível Menina" class="duel-image menina-image rounded-full border-4 border-pink-400 shadow-2xl" />
+                  <div class="image-overlay menina-overlay"></div>
+                </div>
+                <h3 class="dancing-script text-2xl md:text-3xl text-pink-300 mt-4">Nossa Princesa</h3>
+                <div class="power-indicator menina-power">
+                  <div class="power-bar menina-bar"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Indicador de decisão -->
+            <div class="decision-indicator mb-8">
+              <p class="poppins text-lg text-white/80 mb-4">O universo está decidindo...</p>
+              <div class="cosmic-spinner"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        .duel-bg {
+          background: linear-gradient(-45deg, #8b5cf6, #3b82f6, #ec4899, #10b981);
+          background-size: 400% 400%;
+          animation: duelGradient 3s ease infinite;
+        }
+        
+        @keyframes duelGradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        .duel-title {
+          animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+          from {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+          }
+          to {
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.9);
+          }
+        }
+        
+        .duel-image {
+          width: 200px;
+          height: 200px;
+          object-fit: cover;
+          animation: imageFloat 3s ease-in-out infinite;
+          transition: all 0.5s ease;
+        }
+        
+        @keyframes imageFloat {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-10px) scale(1.05); }
+        }
+        
+        .energy-aura {
+          position: absolute;
+          inset: -20px;
+          border-radius: 50%;
+          opacity: 0.7;
+          animation: auraGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .menino-aura {
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
+          box-shadow: 0 0 50px rgba(59, 130, 246, 0.5);
+        }
+        
+        .menina-aura {
+          background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
+          box-shadow: 0 0 50px rgba(236, 72, 153, 0.5);
+        }
+        
+        @keyframes auraGlow {
+          from { opacity: 0.3; transform: scale(1); }
+          to { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        .versus-symbol {
+          animation: versusGlow 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes versusGlow {
+          0%, 100% { 
+            transform: scale(1); 
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+          }
+          50% { 
+            transform: scale(1.1); 
+            text-shadow: 0 0 40px rgba(255, 255, 255, 1);
+          }
+        }
+        
+        .power-indicator {
+          width: 150px;
+          height: 8px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          overflow: hidden;
+          margin: 0 auto;
+        }
+        
+        .power-bar {
+          height: 100%;
+          border-radius: 4px;
+          animation: powerCharge 4s ease-in-out infinite;
+        }
+        
+        .menino-bar {
+          background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+        
+        .menina-bar {
+          background: linear-gradient(90deg, #ec4899, #f472b6);
+        }
+        
+        @keyframes powerCharge {
+          0% { width: 0%; }
+          50% { width: 100%; }
+          100% { width: 0%; }
+        }
+        
+        .cosmic-spinner {
+          width: 60px;
+          height: 60px;
+          border: 4px solid rgba(255, 255, 255, 0.3);
+          border-top: 4px solid #fff;
+          border-radius: 50%;
+          animation: cosmicSpin 1s linear infinite;
+          margin: 0 auto;
+        }
+        
+        @keyframes cosmicSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        .duel-content {
+          animation: contentSlideIn 1s ease-out;
+        }
+        
+        @keyframes contentSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        /* Efeito de energia para a escolhida */
+        .chosen-energy {
+          animation: chosenGlow 2s ease-in-out;
+        }
+        
+        @keyframes chosenGlow {
+          0% { 
+            filter: brightness(1) saturate(1);
+            transform: scale(1);
+          }
+          50% { 
+            filter: brightness(1.5) saturate(1.5);
+            transform: scale(1.1);
+          }
+          100% { 
+            filter: brightness(2) saturate(2);
+            transform: scale(1.2);
+          }
+        }
+        
+        .fade-opponent {
+          animation: fadeOut 2s ease-in-out;
+        }
+        
+        @keyframes fadeOut {
+          to {
+            opacity: 0.2;
+            filter: grayscale(100%);
+            transform: scale(0.8);
+          }
+        }
+      </style>
+    `;
+
+    // Criar efeitos de energia
+    this.createEnergyEffects();
+
+    // Som de suspense épico
+    this.soundGenerator.generateSuspenseSound();
+
+    // Vibração de duelo
+    this.createDuelVibes();
+
+    // Após 4 segundos, mostrar quem ganhou
+    setTimeout(() => {
+      this.showDuelWinner();
+    }, 4000);
+
+    // Transição para reveal após duração total
+    setTimeout(() => {
+      this.startRevealPhase();
+    }, EXPERIENCE_CONFIG.timing.phases.duel);
+  }
+
+  createEnergyEffects() {
+    const container = document.getElementById('energyEffects');
+
+    // Criar partículas de energia
+    for (let i = 0; i < 25; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'absolute rounded-full energy-particle';
+
+      // Cores de energia
+      const colors = [
+        'rgba(59, 130, 246, 0.8)',
+        'rgba(236, 72, 153, 0.8)',
+        'rgba(255, 255, 255, 0.9)',
+      ];
+      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+      // Tamanho
+      const size = Math.random() * 8 + 4;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+
+      // Posição
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+
+      // Animação de energia
+      particle.style.animation = `energyFlow ${Math.random() * 3 + 2}s linear infinite`;
+      particle.style.animationDelay = Math.random() * 2 + 's';
+
+      container.appendChild(particle);
+    }
+
+    // CSS para partículas de energia
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes energyFlow {
+        0% {
+          opacity: 0;
+          transform: translateY(100vh) rotate(0deg);
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100px) rotate(360deg);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  createDuelVibes() {
+    // Padrão de vibração de duelo épico
+    const duelPattern = [150, 50, 150, 50, 300, 100, 100, 50, 400];
+
+    for (let i = 0; i < 3; i++) {
+      setTimeout(() => {
+        this.vibrate(duelPattern);
+      }, i * 1500);
+    }
+  }
+
+  showDuelWinner() {
+    // A menina sempre ganha! (porque é o reveal)
+    const meninaSide = document.querySelector('.menina-side');
+    const meninoSide = document.querySelector('.menino-side');
+    const versusContainer = document.querySelector('.versus-container');
+
+    if (meninaSide && meninoSide) {
+      // Menina ganha com efeito especial
+      meninaSide.classList.add('chosen-energy');
+      meninoSide.classList.add('fade-opponent');
+
+      // Atualizar o versus
+      if (versusContainer) {
+        versusContainer.innerHTML = `
+          <div class="winner-indicator text-4xl md:text-6xl text-pink-400 font-bold dancing-script">
+            👑 VITÓRIA! 👑
+          </div>
+        `;
+      }
+
+      // Vibração de vitória
+      setTimeout(() => {
+        this.vibrate([200, 100, 200, 100, 500]);
+      }, 500);
+    }
   }
 
   startRevealPhase() {
@@ -523,6 +886,9 @@ class RevealExperience {
   startCelebrationPhase() {
     this.currentPhase = 'celebration';
 
+    // Iniciar música de celebração
+    this.playCelebrationMusic();
+
     this.experienceScreen.innerHTML = `
             <div class="celebration-phase relative h-full overflow-hidden">
                 <!-- Fundo festivo -->
@@ -536,7 +902,7 @@ class RevealExperience {
                     <div class="celebration-content max-w-4xl mx-auto">
                         <!-- Título de celebração -->
                         <h1 class="dancing-script text-5xl md:text-7xl font-bold text-white mb-8 celebration-title">
-                            Bem-vinda, Princesinha! 👑
+                            Bem-vinda, Celina ! 👑
                         </h1>
                         
                         <!-- Mensagem especial -->
@@ -572,6 +938,27 @@ class RevealExperience {
                         <button id="shareButton" class="share-button bg-white text-pink-600 px-8 py-4 rounded-full text-xl font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105">
                             Compartilhar a Alegria! 📱
                         </button>
+                        
+                        <!-- Controles de música -->
+                        <div class="music-controls mt-6 flex justify-center items-center gap-4">
+                            <button id="musicToggle" class="music-button bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all">
+                                🎵 Pausar Música
+                            </button>
+                            <div class="volume-control flex items-center gap-2">
+                                <span class="text-white text-sm">🔊</span>
+                                <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider">
+                            </div>
+                        </div>
+                        
+                        <!-- Botão para repetir experiência -->
+                        <div class="repeat-section mt-8">
+                            <button id="repeatButton" class="repeat-button bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-2xl">
+                                🔄 Repetir a Magia ✨
+                            </button>
+                            <p class="poppins text-sm text-white/60 mt-2">
+                                Quer viver essa emoção novamente?
+                            </p>
+                        </div>
                         
                         <!-- Agradecimento -->
                         <p class="poppins text-lg text-white/80 mt-8">
@@ -703,7 +1090,10 @@ class RevealExperience {
 
   addShareFunctionality() {
     const shareButton = document.getElementById('shareButton');
+    const musicToggle = document.getElementById('musicToggle');
+    const volumeSlider = document.getElementById('volumeSlider');
 
+    // Compartilhamento
     shareButton.addEventListener('click', () => {
       if (navigator.share) {
         navigator
@@ -725,6 +1115,51 @@ class RevealExperience {
 
       this.vibrate([100, 100, 100]);
     });
+
+    // Controle de música
+    if (musicToggle && this.celebrationMusic) {
+      musicToggle.addEventListener('click', () => {
+        if (this.celebrationMusic.paused) {
+          this.celebrationMusic.play();
+          musicToggle.textContent = '🎵 Pausar Música';
+        } else {
+          this.celebrationMusic.pause();
+          musicToggle.textContent = '▶️ Tocar Música';
+        }
+        this.vibrate([100]);
+      });
+    }
+
+    // Controle de volume
+    if (volumeSlider && this.celebrationMusic) {
+      volumeSlider.addEventListener('input', (e) => {
+        this.celebrationMusic.volume = e.target.value / 100;
+      });
+    }
+  }
+
+  playCelebrationMusic() {
+    if (this.celebrationMusic) {
+      // Fade in da música
+      this.celebrationMusic.volume = 0;
+      this.celebrationMusic
+        .play()
+        .then(() => {
+          // Aumentar volume gradualmente
+          let volume = 0;
+          const fadeIn = setInterval(() => {
+            volume += 0.05;
+            if (volume >= 0.7) {
+              volume = 0.7;
+              clearInterval(fadeIn);
+            }
+            this.celebrationMusic.volume = volume;
+          }, 100);
+        })
+        .catch((error) => {
+          console.log('Erro ao reproduzir música:', error);
+        });
+    }
   }
 }
 

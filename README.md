@@ -2,15 +2,31 @@
 
 Uma experiência interativa completa para revelação de gênero que vai fazer todo mundo roer as unhas antes do grande momento!
 
-## ✨ Características
+## ✨ Caracterís## 🎭 Emotional Journey
 
-### 🎭 Experiência Imersiva
+```
+😮 Curiosidade → 🔮 Mistério → 😰 Suspense → ⚡ Duelo Épico → 🤯 Choque → 🥳 Alegria Musical
+```
+
+## 🆕 Novidades da Versão 2.0
+
+- ⚡ **Fase Duelo**: Confronto visual épico entre as possibilidades
+- 🎵 **Trilha Sonora**: Música "Ligeiramente Grávida" integrada
+- 🎛️ **Controles de Áudio**: Play/Pause e controle de volume
+- 🎨 **Efeitos Visuais**: Auras de energia, partículas mágicas e animações de vitória
+- 📸 **Imagens IA**: Integração das imagens geradas por IA dos possíveis bebês
+
+---
+
+_Feito com 💕 para celebrar momentos especiais_
+_Versão 2.0 - Agora com duelo épico e trilha sonora!_ 🎵⚡# ✨ **Experiência Imersiva**
 
 - **Pré-show com suspense**: Landing page com partículas flutuantes, contador regressivo e trilha de batimento cardíaco
 - **Fase Mistério**: Símbolos enigmáticos, partículas místicas e progressão visual
 - **Buildup Dramático**: Contagem regressiva final com efeitos visuais intensos
+- **🆕 Duelo Épico**: Confronto visual entre as imagens IA do possível menino vs menina com efeitos de energia
 - **Grande Reveal**: Explosão de confetes, animações celebrativas e "É MENINA!" épico
-- **Celebração**: Balões, mensagens especiais e opção de compartilhamento
+- **Celebração Musical**: Balões, mensagens especiais, música "Ligeiramente Grávida" e controles de áudio
 
 ### 🔊 Áudio Dinâmico
 
@@ -48,6 +64,9 @@ revelacao/
 ├── index.html          # Página principal com landing
 ├── experience.js       # Lógica principal da experiência
 ├── sounds.js          # Gerador de áudio sintético
+├── menino.jpeg        # Imagem IA do possível menino
+├── menina.jpeg        # Imagem IA da possível menina
+├── O Espírito da Coisa - Ligeiramente Grávida [zdeKhxfiSVs].mp3  # Música de celebração
 └── README.md          # Documentação
 ```
 
@@ -59,6 +78,8 @@ revelacao/
 - **JavaScript ES6+**: Programação orientada a objetos
 - **Web Audio API**: Geração de sons sintéticos
 - **Vibration API**: Feedback háptico
+
+## 🎯 Fases da Experiência
 
 ## 🎯 Fases da Experiência
 
@@ -83,17 +104,28 @@ revelacao/
 - Sons de suspense crescente
 - Vibração intensa
 
-### 4. 🎉 Reveal
+### 4. ⚡ **NOVO!** Duelo de Possibilidades
+
+- **Imagens dos possíveis bebês** (menino.jpeg vs menina.jpeg)
+- **Animação épica de confronto** com auras de energia
+- **Efeitos visuais de poder** com barras de energia
+- **Partículas mágicas** flutuantes
+- **Vibração de duelo** sincronizada
+- **Reveal da vitoriosa** com efeitos especiais
+
+### 5. 🎉 Reveal
 
 - "É MENINA!" com animação explosiva
 - Chuva de confetes coloridos
 - Emojis dançantes
 - Acordes celebrativos
 
-### 5. 🎈 Celebração
+### 6. 🎈 Celebração + Música
 
 - Balões flutuantes
 - Cards informativos
+- **Música "Ligeiramente Grávida"** tocando automaticamente
+- **Controles de música** (Play/Pause + Volume)
 - Botão de compartilhamento
 - Mensagem de agradecimento
 
@@ -113,19 +145,25 @@ No arquivo `experience.js`, linha ~340:
 
 No início do `experience.js`:
 
+````javascript
+### Ajustar Timing
+No início do `experience.js`:
 ```javascript
 const EXPERIENCE_CONFIG = {
-  timing: {
-    countdown: 10, // Countdown inicial
-    phases: {
-      mystery: 8000, // Fase mistério (ms)
-      buildup: 5000, // Buildup (ms)
-      reveal: 3000, // Reveal (ms)
-      celebration: 10000, // Celebração (ms)
-    },
-  },
+    timing: {
+        countdown: 10,        // Countdown inicial
+        phases: {
+            mystery: 8000,    // Fase mistério (ms)
+            buildup: 5000,    // Buildup (ms)
+            duel: 6000,       // 🆕 Duelo de possibilidades (ms)
+            reveal: 3000,     // Reveal (ms)
+            celebration: 10000 // Celebração (ms)
+        }
+    }
 };
-```
+````
+
+````
 
 ### Cores Personalizadas
 
@@ -137,7 +175,7 @@ colors: {
     reveal: ['#ff69b4', '#ff1493', '#ffc0cb', '#ffb6c1'], // Rosa para menina
     // Para menino: ['#87ceeb', '#4169e1', '#0000ff', '#add8e6']
 }
-```
+````
 
 ## 📱 Compatibilidade
 
@@ -149,6 +187,9 @@ colors: {
 
 ## 🎪 Features Especiais
 
+- **🆕 Duelo Visual Épico**: Confronto dramático entre as imagens IA dos possíveis bebês
+- **🆕 Trilha Sonora Personalizada**: Música "Ligeiramente Grávida" com controles de volume
+- **🆕 Controles de Áudio**: Play/Pause e ajuste de volume durante a celebração
 - **Prevenção de spoilers**: Não há como "pular" a experiência
 - **Feedback háptico**: Vibração sincronizada (mobile)
 - **Áudio sintético**: Funciona sem arquivos externos
