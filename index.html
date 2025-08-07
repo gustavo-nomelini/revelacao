@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Revelação do Bebê 💕</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="sounds.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Poppins:wght@300;400;600;700&display=swap');
+
+      .dancing-script {
+        font-family: 'Dancing Script', cursive;
+      }
+      .poppins {
+        font-family: 'Poppins', sans-serif;
+      }
+
+      /* Partículas flutuantes */
+      .particle {
+        position: absolute;
+        background: rgba(255, 192, 203, 0.6);
+        border-radius: 50%;
+        pointer-events: none;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .particle:nth-child(odd) {
+        background: rgba(173, 216, 230, 0.6);
+        animation-delay: -2s;
+      }
+
+      .particle:nth-child(3n) {
+        background: rgba(255, 255, 255, 0.8);
+        animation-delay: -4s;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        33% {
+          transform: translateY(-20px) rotate(120deg);
+        }
+        66% {
+          transform: translateY(10px) rotate(240deg);
+        }
+      }
+
+      /* Pulso do coração */
+      .heartbeat {
+        animation: heartbeat 1.2s ease-in-out infinite;
+      }
+
+      @keyframes heartbeat {
+        0% {
+          transform: scale(1);
+        }
+        14% {
+          transform: scale(1.1);
+        }
+        28% {
+          transform: scale(1);
+        }
+        42% {
+          transform: scale(1.1);
+        }
+        70% {
+          transform: scale(1);
+        }
+      }
+
+      /* Gradiente animado */
+      .animated-gradient {
+        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+      }
+
+      @keyframes gradient {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Contador regressivo */
+      .countdown-number {
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        animation: pulse 1s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.05);
+          opacity: 0.9;
+        }
+      }
+
+      /* Botão com efeito hover */
+      .mystery-button {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .mystery-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+
+      .mystery-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+      }
+
+      .mystery-button:hover::before {
+        left: 100%;
+      }
+
+      /* Efeito de fade */
+      .fade-in {
+        animation: fadeIn 2s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Esconder scrollbar */
+      body::-webkit-scrollbar {
+        display: none;
+      }
+      body {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body class="overflow-hidden">
+    <!-- Tela de Loading/Landing -->
+    <div
+      id="landingScreen"
+      class="fixed inset-0 animated-gradient flex items-center justify-center z-50"
+    >
+      <!-- Partículas de fundo -->
+      <div id="particles" class="absolute inset-0"></div>
+
+      <!-- Conteúdo principal -->
+      <div class="text-center z-10 fade-in">
+        <!-- Título principal -->
+        <h1 class="dancing-script text-6xl md:text-8xl font-bold text-white mb-8 drop-shadow-lg">
+          Grande Revelação
+        </h1>
+
+        <!-- Subtítulo -->
+        <p class="poppins text-xl md:text-2xl text-white/90 mb-12 max-w-2xl mx-auto px-4">
+          O momento mais esperado está chegando...
+          <br />Prepare seu coração para descobrir quem é nosso pequeno tesouro! 💕
+        </p>
+
+        <!-- Coração pulsante -->
+        <div class="heartbeat text-6xl mb-8">❤️</div>
+
+        <!-- Contador regressivo -->
+        <div class="mb-12">
+          <p class="poppins text-lg text-white/80 mb-4">Revelação em:</p>
+          <div
+            id="countdown"
+            class="countdown-number poppins text-4xl md:text-6xl font-bold text-white"
+          >
+            10
+          </div>
+        </div>
+
+        <!-- Botão de entrada -->
+        <button
+          id="enterButton"
+          class="mystery-button poppins bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full text-xl font-semibold border-2 border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span id="buttonText">Entrar no Mistério</span>
+          <span class="ml-2">✨</span>
+        </button>
+
+        <!-- Texto de instrução -->
+        <p class="poppins text-sm text-white/70 mt-4 max-w-md mx-auto px-4">
+          * Clique para habilitar som e vibração para uma experiência completa
+        </p>
+      </div>
+
+      <!-- Audio de batimento cardíaco -->
+      <audio id="heartbeatAudio" loop preload="auto">
+        <source
+          src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsF"
+          type="audio/wav"
+        />
+      </audio>
+    </div>
+
+    <!-- Tela de Experiência (escondida inicialmente) -->
+    <div id="experienceScreen" class="fixed inset-0 bg-black hidden">
+      <!-- Conteúdo da experiência será adicionado aqui -->
+      <div class="flex items-center justify-center h-full">
+        <div class="text-center text-white">
+          <h2 class="dancing-script text-4xl md:text-6xl mb-8">A experiência está carregando...</h2>
+          <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script principal da experiência -->
+    <script src="experience.js"></script>
+
+    <script>
+      // Função para criar partículas da landing page
+      function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+
+        for (let i = 0; i < 50; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+
+          // Tamanho aleatório
+          const size = Math.random() * 8 + 4;
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+
+          // Posição aleatória
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.top = Math.random() * 100 + '%';
+
+          // Duração de animação aleatória
+          particle.style.animationDuration = Math.random() * 4 + 4 + 's';
+          particle.style.animationDelay = Math.random() * 2 + 's';
+
+          particlesContainer.appendChild(particle);
+        }
+      }
+
+      // Inicialização das partículas da landing
+      document.addEventListener('DOMContentLoaded', () => {
+        createParticles();
+      });
+
+      // Prevenir scroll e zoom indesejado
+      document.body.style.overflow = 'hidden';
+
+      // Prevenir comportamentos indesejados no mobile
+      document.addEventListener('gesturestart', function (e) {
+        e.preventDefault();
+      });
+
+      document.addEventListener('gesturechange', function (e) {
+        e.preventDefault();
+      });
+
+      document.addEventListener('gestureend', function (e) {
+        e.preventDefault();
+      });
+    </script>
+  </body>
+</html>
