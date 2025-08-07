@@ -6,13 +6,13 @@ const EXPERIENCE_CONFIG = {
     celebration: true,
   },
   timing: {
-    countdown: 10,
+    countdown: 2,
     phases: {
-      mystery: 8000,
-      buildup: 5000,
+      mystery: 14000,
+      buildup: 17000,
       duel: 6000, // Nova fase: Duelo de Possibilidades
       reveal: 8000, // Aumentado de 3000 para 8000ms (8 segundos)
-      celebration: 10000,
+      celebration: 20000,
     },
   },
   colors: {
@@ -31,10 +31,12 @@ class RevealExperience {
     this.particles = [];
     this.animationId = null;
     this.celebrationMusic = null;
+    this.climaxMusic = null;
 
     this.initializeElements();
     this.bindEvents();
     this.loadCelebrationMusic();
+    this.loadClimaxMusic();
   }
 
   initializeElements() {
@@ -60,6 +62,12 @@ class RevealExperience {
     );
     this.celebrationMusic.preload = 'auto';
     this.celebrationMusic.volume = 0.7;
+  }
+
+  loadClimaxMusic() {
+    this.climaxMusic = new Audio('./Climax 1⧸2 (Suspense) sound effects [NQRbIrEHY3M].mp3');
+    this.climaxMusic.preload = 'auto';
+    this.climaxMusic.volume = 0.8;
   }
 
   vibrate(pattern = [100, 50, 100]) {
@@ -254,8 +262,11 @@ class RevealExperience {
     // Parar áudio de batimento
     this.soundGenerator.stopHeartbeatLoop();
 
-    // Som de suspense
-    this.soundGenerator.generateSuspenseSound();
+    // Som de suspense (arquivo de áudio)
+    if (this.climaxMusic) {
+      this.climaxMusic.currentTime = 0;
+      this.climaxMusic.play().catch((e) => console.log('Erro ao tocar música do clímax:', e));
+    }
 
     this.experienceScreen.innerHTML = `
             <div class="buildup-phase relative h-full overflow-hidden">
@@ -284,7 +295,7 @@ class RevealExperience {
                         
                         <!-- Contador final -->
                         <div id="finalCountdown" class="final-countdown text-8xl md:text-9xl font-bold text-white mb-8">
-                            3
+                            5
                         </div>
                     </div>
                 </div>
@@ -343,7 +354,7 @@ class RevealExperience {
 
   startFinalCountdown() {
     const countdownElement = document.getElementById('finalCountdown');
-    let count = 3;
+    let count = 5;
 
     const finalInterval = setInterval(() => {
       count--;
@@ -362,11 +373,17 @@ class RevealExperience {
         // Ir para o duelo de possibilidades antes do reveal!
         this.startDuelPhase();
       }
-    }, 1000);
+    }, 1200);
   }
 
   startDuelPhase() {
     this.currentPhase = 'duel';
+
+    // Parar música do clímax
+    if (this.climaxMusic) {
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+    }
 
     this.experienceScreen.innerHTML = `
       <div class="duel-phase relative h-full overflow-hidden">
@@ -385,7 +402,7 @@ class RevealExperience {
             </h2>
             
             <p class="poppins text-xl md:text-2xl text-white/90 mb-12">
-              Duas almas disputam para vir ao mundo... Quem será escolhida pelo destino?
+              Quem será escolhido pelo destino?
             </p>
             
             <!-- Container das imagens do duelo -->
@@ -745,19 +762,6 @@ class RevealExperience {
                             </p>
                         </div>
                         
-                        <!-- Informações especiais -->
-                        <div class="special-info bg-white/20 backdrop-blur-sm rounded-2xl p-8 max-w-md mx-auto">
-                            <h3 class="dancing-script text-3xl text-white mb-4">Detalhes da Princesa</h3>
-                            <div class="poppins text-white/90 space-y-2">
-                                <p>💕 Cheia de amor para dar</p>
-                                <p>🌸 Delicada como uma flor</p>
-                                <p>👑 Nossa pequena rainha</p>
-                                <p>✨ Trazendo magia para nossas vidas</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             
             <style>
                 .reveal-bg {
@@ -908,7 +912,7 @@ class RevealExperience {
                         <!-- Mensagem especial -->
                         <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-3xl p-8 mb-8">
                             <p class="poppins text-xl md:text-2xl text-white mb-6">
-                                Uma nova estrela nasceu em nossos corações que será amada pelos papais Gustavo e Jéssica ! ⭐
+                                Uma nova estrela nasceu em nossos corações ! ⭐
                             </p>
                             
                             <div class="celebration-details grid grid-cols-1 md:grid-cols-2 gap-6 text-white">
