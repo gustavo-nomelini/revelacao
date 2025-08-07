@@ -397,7 +397,7 @@ class RevealExperience {
                   <img src="menino.jpeg" alt="Possível Menino" class="duel-image menino-image rounded-full border-4 border-blue-400 shadow-2xl" />
                   <div class="image-overlay menino-overlay"></div>
                 </div>
-                <h3 class="dancing-script text-2xl md:text-3xl text-blue-300 mt-4">Nosso Príncipe</h3>
+                <h3 class="dancing-script text-2xl md:text-3xl text-blue-300 mt-4">Francisco</h3>
                 <div class="power-indicator menino-power">
                   <div class="power-bar menino-bar"></div>
                 </div>
@@ -418,7 +418,7 @@ class RevealExperience {
                   <img src="menina.jpeg" alt="Possível Menina" class="duel-image menina-image rounded-full border-4 border-pink-400 shadow-2xl" />
                   <div class="image-overlay menina-overlay"></div>
                 </div>
-                <h3 class="dancing-script text-2xl md:text-3xl text-pink-300 mt-4">Nossa Princesa</h3>
+                <h3 class="dancing-script text-2xl md:text-3xl text-pink-300 mt-4">Celina</h3>
                 <div class="power-indicator menina-power">
                   <div class="power-bar menina-bar"></div>
                 </div>
@@ -908,7 +908,7 @@ class RevealExperience {
                         <!-- Mensagem especial -->
                         <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-3xl p-8 mb-8">
                             <p class="poppins text-xl md:text-2xl text-white mb-6">
-                                Uma nova estrela nasceu em nossos corações! ⭐
+                                Uma nova estrela nasceu em nossos corações que será amada pelos papais Gustavo e Jéssica ! ⭐
                             </p>
                             
                             <div class="celebration-details grid grid-cols-1 md:grid-cols-2 gap-6 text-white">
@@ -1046,6 +1046,80 @@ class RevealExperience {
             </style>
         `;
 
+    // Adicionar estilos para o botão de repetir
+    const repeatStyles = document.createElement('style');
+    repeatStyles.textContent = `
+        .repeat-button {
+            animation: repeatPulse 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .repeat-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .repeat-button:hover::before {
+            left: 100%;
+        }
+        
+        @keyframes repeatPulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(147, 51, 234, 0.8);
+                transform: scale(1.02);
+            }
+        }
+        
+        .music-button {
+            transition: all 0.3s ease;
+        }
+        
+        .music-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .volume-slider {
+            width: 100px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            appearance: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+    `;
+    document.head.appendChild(repeatStyles);
+
     // Criar balões
     this.createBalloons();
 
@@ -1092,6 +1166,7 @@ class RevealExperience {
     const shareButton = document.getElementById('shareButton');
     const musicToggle = document.getElementById('musicToggle');
     const volumeSlider = document.getElementById('volumeSlider');
+    const repeatButton = document.getElementById('repeatButton');
 
     // Compartilhamento
     shareButton.addEventListener('click', () => {
@@ -1136,8 +1211,25 @@ class RevealExperience {
         this.celebrationMusic.volume = e.target.value / 100;
       });
     }
+
+    // Botão de repetir experiência
+    if (repeatButton) {
+      repeatButton.addEventListener('click', () => {
+        this.restartExperience();
+      });
+    }
   }
 
+  restartExperience() {
+    // Vibração de confirmação
+    this.vibrate([100, 50, 100, 50, 200]);
+
+    // Pequeno delay para sentir a vibração antes do refresh
+    setTimeout(() => {
+      // Recarregar a página (equivalente ao F5)
+      window.location.reload();
+    }, 300);
+  }
   playCelebrationMusic() {
     if (this.celebrationMusic) {
       // Fade in da música
