@@ -104,6 +104,33 @@ class RevealExperience {
     document.addEventListener('click', unlockAudio);
   }
 
+  // Função para parar qualquer áudio inadequado para a fase atual
+  stopInappropriateAudio() {
+    console.log(`🧹 Limpando áudios inadequados para fase: ${this.currentPhase}`);
+
+    // Durante mystery e countdown, NENHUM áudio de clímax deve tocar
+    if (this.currentPhase === 'mystery' || this.currentPhase === 'countdown') {
+      if (this.climaxMusic && !this.climaxMusic.paused) {
+        this.climaxMusic.pause();
+        this.climaxMusic.currentTime = 0;
+        console.log('🛑 Áudio do clímax parado - fase não permite clímax');
+      }
+    }
+
+    // Durante duelo e depois, clímax deve estar parado
+    if (
+      this.currentPhase === 'duel' ||
+      this.currentPhase === 'reveal' ||
+      this.currentPhase === 'celebration'
+    ) {
+      if (this.climaxMusic && !this.climaxMusic.paused) {
+        this.climaxMusic.pause();
+        this.climaxMusic.currentTime = 0;
+        console.log('🛑 Áudio do clímax parado - fase posterior ao buildup');
+      }
+    }
+  }
+
   async preAuthorizeMobileAudio() {
     if (this.allAudiosPreAuthorized) return;
 
@@ -180,18 +207,42 @@ class RevealExperience {
     const celebrationTime =
       buildupTime + EXPERIENCE_CONFIG.timing.phases.duel + EXPERIENCE_CONFIG.timing.phases.reveal;
 
-    // Agendar música do clímax (durante buildup)
-    setTimeout(() => {
-      if (this.currentPhase === 'buildup' && this.climaxMusic && this.allAudiosPreAuthorized) {
-        console.log('🎵 Auto-reproduzindo música do clímax...');
+    // CORREÇÃO: Agendar música do clímax EXATAMENTE quando a fase buildup começar
+    // Usar um intervalo de verificação em vez de timeout único para maior precisão
+    const climaxCheckInterval = setInterval(() => {
+      // Verificação rigorosa: fase buildup E áudios autorizados E ainda não tocando
+      if (
+        this.currentPhase === 'buildup' &&
+        this.climaxMusic &&
+        this.allAudiosPreAuthorized &&
+        this.climaxMusic.paused
+      ) {
+        console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
         this.climaxMusic.currentTime = 0;
         this.climaxMusic.volume = 0.8;
         this.climaxMusic
           .play()
-          .then(() => console.log('✅ Música do clímax auto-reproduzida'))
+          .then(() => {
+            console.log('✅ Música do clímax auto-reproduzida na fase correta');
+            clearInterval(climaxCheckInterval); // Parar verificação após sucesso
+          })
           .catch((err) => console.log('❌ Falha na auto-reprodução do clímax:', err));
       }
-    }, buildupTime - 1000); // 1 segundo antes da fase buildup para garantir
+
+      // Parar verificação após a fase buildup
+      if (
+        this.currentPhase !== 'buildup' &&
+        this.currentPhase !== 'mystery' &&
+        this.currentPhase !== 'countdown'
+      ) {
+        clearInterval(climaxCheckInterval);
+      }
+    }, 500); // Verificar a cada 500ms
+
+    // Timeout de segurança para limpar o intervalo
+    setTimeout(() => {
+      clearInterval(climaxCheckInterval);
+    }, buildupTime + 5000);
 
     // Agendar música de celebração
     setTimeout(() => {
@@ -447,6 +498,16 @@ class RevealExperience {
   startMysteryPhase() {
     this.currentPhase = 'mystery';
 
+    // Limpeza de áudios inadequados
+    this.stopInappropriateAudio();
+
+    // PROTEÇÃO: Garantir que música do clímax não está tocando na fase mystery
+    if (this.climaxMusic) {
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+      console.log('🛡️ Áudio do clímax parado durante entrada na fase mystery');
+    }
+
     // Criar conteúdo da fase mistério
     this.experienceScreen.innerHTML = `
             <div class="mystery-phase relative h-full overflow-hidden">
@@ -572,11 +633,16 @@ class RevealExperience {
   startBuildupPhase() {
     this.currentPhase = 'buildup';
 
+    // Limpeza de áudios inadequados antes de iniciar o buildup
+    this.stopInappropriateAudio();
+
     // Parar áudio de batimento
     this.soundGenerator.stopHeartbeatLoop();
 
-    // Som de suspense (arquivo de áudio)
+    // CONTROLE PRECISO: Som de suspense (arquivo de áudio) só na fase buildup
     if (this.climaxMusic) {
+      // Garantir que o áudio está parado antes de reproduzir
+      this.climaxMusic.pause();
       this.climaxMusic.currentTime = 0;
       this.climaxMusic.volume = 0.8; // Garantir volume
 
@@ -584,15 +650,18 @@ class RevealExperience {
       if (playPromise) {
         playPromise
           .then(() => {
-            console.log('✅ Música do clímax iniciada com sucesso');
+            console.log('✅ Música do clímax iniciada com sucesso NA FASE BUILDUP');
           })
           .catch((e) => {
             console.log('❌ Erro ao tocar música do clímax:', e);
             // Se falhar, tentar novamente após um pequeno delay
             setTimeout(() => {
-              this.climaxMusic
-                .play()
-                .catch(() => console.log('Segunda tentativa de clímax falhou'));
+              if (this.currentPhase === 'buildup') {
+                // Verificar se ainda estamos na fase correta
+                this.climaxMusic
+                  .play()
+                  .catch(() => console.log('Segunda tentativa de clímax falhou'));
+              }
             }, 100);
           });
       }
@@ -708,6 +777,9 @@ class RevealExperience {
 
   startDuelPhase() {
     this.currentPhase = 'duel';
+
+    // Limpeza de áudios inadequados
+    this.stopInappropriateAudio();
 
     // Parar música do clímax
     if (this.climaxMusic) {
@@ -1950,6 +2022,11 @@ class RevealExperience {
   startCelebrationPhase() {
     this.currentPhase = 'celebration';
 
+    // CORREÇÃO MOBILE: Permitir scroll no body para a fase de celebração
+    document.body.style.overflow = 'auto';
+    document.body.style.height = 'auto';
+    document.body.style.minHeight = '100vh';
+
     // Parar TODOS os outros áudios antes da celebração
     this.stopAllAudioExceptCelebration();
 
@@ -1963,7 +2040,7 @@ class RevealExperience {
     }, 1000); // Delay de 1 segundo para garantir que outros áudios pararam
 
     this.experienceScreen.innerHTML = `
-            <div class="celebration-phase relative h-full overflow-hidden">
+            <div class="celebration-phase relative min-h-screen overflow-y-auto">
                 <!-- Fundo festivo -->
                 <div class="absolute inset-0 celebration-bg"></div>
                 
@@ -1971,8 +2048,8 @@ class RevealExperience {
                 <div id="balloons" class="absolute inset-0"></div>
                 
                 <!-- Conteúdo principal -->
-                <div class="relative z-10 flex flex-col items-center justify-start min-h-full text-center px-1 sm:px-2 md:px-4 py-2 sm:py-4 overflow-y-auto">
-                    <div class="celebration-content max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-4xl mx-auto w-full">
+                <div class="relative z-10 flex flex-col items-center justify-start min-h-screen text-center px-1 sm:px-2 md:px-4 py-4 sm:py-6">
+                    <div class="celebration-content max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-4xl mx-auto w-full pb-8">
                         <!-- Título de celebração -->
                         <h1 class="dancing-script text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 lg:mb-6 xl:mb-8 celebration-title leading-tight">
                             Bem-vinda, Celina ! 👑
@@ -2205,10 +2282,20 @@ class RevealExperience {
                         width: 80px;
                     }
                     
-                    /* Melhor scroll em telas pequenas */
+                    /* CORREÇÃO MOBILE: Permitir scroll e visualização completa */
                     .celebration-phase {
-                        overflow-y: auto;
+                        overflow-y: auto !important;
                         -webkit-overflow-scrolling: touch;
+                        min-height: 100vh;
+                        height: auto;
+                    }
+                    
+                    .celebration-content {
+                        padding-bottom: 2rem;
+                        min-height: calc(100vh - 2rem);
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: flex-start;
                     }
                 }
                 
@@ -2322,15 +2409,43 @@ class RevealExperience {
                     }
                 }
                 
-                /* Otimizações específicas para iPhone */
+                /* Otimizações específicas para iPhone e dispositivos móveis */
                 @media screen and (max-device-width: 414px) {
+                    body {
+                        overflow: auto !important;
+                        height: auto !important;
+                    }
+                    
                     .celebration-phase {
                         min-height: -webkit-fill-available;
+                        height: auto;
+                        overflow-y: auto !important;
                     }
                     
                     .celebration-content {
                         min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-                        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+                        padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+                    }
+                }
+                
+                /* Correções globais para mobile - garantir scroll */
+                @media screen and (max-width: 768px) {
+                    body {
+                        overflow: auto !important;
+                        height: auto !important;
+                        min-height: 100vh;
+                    }
+                    
+                    #experienceScreen {
+                        overflow-y: auto !important;
+                        height: auto !important;
+                        min-height: 100vh;
+                    }
+                    
+                    .celebration-phase {
+                        overflow-y: auto !important;
+                        height: auto !important;
+                        min-height: 100vh;
                     }
                 }
                 
@@ -2659,6 +2774,11 @@ class RevealExperience {
   restartExperience() {
     // Vibração de confirmação
     this.vibrate([100, 50, 100, 50, 200]);
+
+    // Restaurar configurações do body para as configurações iniciais
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    document.body.style.minHeight = '100vh';
 
     // Reset das variáveis antes do reload
     this.experienceStarted = false;
