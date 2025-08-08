@@ -6,11 +6,11 @@ const EXPERIENCE_CONFIG = {
     celebration: true,
   },
   timing: {
-    countdown: 2,
+    countdown: 10,
     phases: {
       mystery: 14000,
       buildup: 17000,
-      duel: 12000, // Nova fase: Duelo de Possibilidades
+      duel: 20000, // Duelo expandido: 3s carregamento + 3s fase1 + 4s fase2 + 10s fase3
       reveal: 8000, // Aumentado de 3000 para 8000ms (8 segundos)
       celebration: 20000,
     },
@@ -1215,6 +1215,198 @@ class RevealExperience {
         0%, 100% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
       }
+      
+      /* === ANIMAÇÕES ÉPICAS PARA FASE 0 === */
+      
+      .versus-loading-epic {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+      }
+      
+      /* Círculos de energia pulsante */
+      .energy-ring {
+        position: absolute;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: energyRingPulse 2s ease-in-out infinite;
+      }
+      
+      .ring-1 {
+        width: 100px;
+        height: 100px;
+        animation-delay: 0s;
+        border-color: rgba(139, 92, 246, 0.6);
+      }
+      
+      .ring-2 {
+        width: 150px;
+        height: 150px;
+        animation-delay: 0.5s;
+        border-color: rgba(59, 130, 246, 0.6);
+      }
+      
+      .ring-3 {
+        width: 200px;
+        height: 200px;
+        animation-delay: 1s;
+        border-color: rgba(236, 72, 153, 0.6);
+      }
+      
+      @keyframes energyRingPulse {
+        0%, 100% {
+          transform: scale(0.8);
+          opacity: 0.3;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.8;
+        }
+      }
+      
+      /* Partículas de energia flutuantes */
+      .particle {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: radial-gradient(circle, #fff, transparent);
+        border-radius: 50%;
+        opacity: 0.8;
+      }
+      
+      .p1 { 
+        top: 20%; left: 20%; 
+        animation: particleFloat1 3s ease-in-out infinite;
+      }
+      .p2 { 
+        top: 30%; right: 20%; 
+        animation: particleFloat2 2.5s ease-in-out infinite 0.5s;
+      }
+      .p3 { 
+        bottom: 30%; left: 30%; 
+        animation: particleFloat3 2.8s ease-in-out infinite 1s;
+      }
+      .p4 { 
+        bottom: 20%; right: 30%; 
+        animation: particleFloat1 3.2s ease-in-out infinite 1.5s;
+      }
+      .p5 { 
+        top: 50%; left: 10%; 
+        animation: particleFloat2 2.7s ease-in-out infinite 2s;
+      }
+      .p6 { 
+        top: 60%; right: 10%; 
+        animation: particleFloat3 3.1s ease-in-out infinite 0.3s;
+      }
+      
+      @keyframes particleFloat1 {
+        0%, 100% { transform: translateY(0px) scale(1); opacity: 0.8; }
+        50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+      }
+      
+      @keyframes particleFloat2 {
+        0%, 100% { transform: translateX(0px) scale(1); opacity: 0.6; }
+        50% { transform: translateX(15px) scale(1.3); opacity: 1; }
+      }
+      
+      @keyframes particleFloat3 {
+        0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.7; }
+        50% { transform: translate(10px, -15px) scale(1.1); opacity: 1; }
+      }
+      
+      /* Loading dots melhorado */
+      .loading-dots-enhanced span {
+        display: inline-block;
+        margin: 0 4px;
+        animation: enhancedDot 2s ease-in-out infinite;
+      }
+      
+      .dot-1 { animation-delay: 0s; color: #8b5cf6; }
+      .dot-2 { animation-delay: 0.3s; color: #3b82f6; }
+      .dot-3 { animation-delay: 0.6s; color: #ec4899; }
+      
+      @keyframes enhancedDot {
+        0%, 80%, 100% { 
+          transform: scale(1) translateY(0px);
+          opacity: 0.5;
+        }
+        40% { 
+          transform: scale(1.5) translateY(-8px);
+          opacity: 1;
+        }
+      }
+      
+      /* Barra de progresso épica */
+      .loading-bar-container-enhanced {
+        position: relative;
+        width: 300px;
+        margin: 0 auto;
+      }
+      
+      .loading-bar-bg {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+      
+      .loading-bar-epic {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6, #ec4899, #10b981, #f59e0b);
+        background-size: 300% 100%;
+        animation: epicBarFill 3s ease-out forwards, epicBarShine 1.5s ease-in-out infinite;
+        width: 0%;
+        border-radius: 4px;
+      }
+      
+      .loading-bar-glow {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        width: 100%;
+        height: 12px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        border-radius: 6px;
+        animation: glowSweep 2s ease-in-out infinite;
+        opacity: 0;
+      }
+      
+      @keyframes epicBarFill {
+        from { width: 0%; }
+        to { width: 100%; }
+      }
+      
+      @keyframes epicBarShine {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+      }
+      
+      @keyframes glowSweep {
+        0% { transform: translateX(-100%); opacity: 0; }
+        50% { opacity: 1; }
+        100% { transform: translateX(100%); opacity: 0; }
+      }
+      
+      /* VS subtitle animado */
+      .vs-subtitle {
+        animation: subtitleGlow 2.5s ease-in-out infinite;
+      }
+      
+      @keyframes subtitleGlow {
+        0%, 100% { 
+          opacity: 0.7;
+          text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+        50% { 
+          opacity: 1;
+          text-shadow: 0 0 20px rgba(168, 85, 247, 1);
+        }
+      }
     `;
     document.head.appendChild(style);
   }
@@ -1258,31 +1450,119 @@ class RevealExperience {
       meninoBar.style.opacity = '0.7';
     }
 
-    // Animação do VS com carregamento
+    // Animação do VS com carregamento ÉPICO
     versusContainer.innerHTML = `
-      <div class="versus-loading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl text-white font-bold">
-        <div class="vs-spinner">⚡ VS ⚡</div>
-        <div class="loading-dots text-base sm:text-lg md:text-xl mt-2">
-          <span>.</span><span>.</span><span>.</span>
+      <div class="versus-loading-epic relative">
+        <!-- Círculos de energia pulsante -->
+        <div class="energy-rings absolute inset-0 flex items-center justify-center">
+          <div class="energy-ring ring-1"></div>
+          <div class="energy-ring ring-2"></div>
+          <div class="energy-ring ring-3"></div>
+        </div>
+        
+        <!-- VS principal com efeitos -->
+        <div class="vs-main text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-bold relative z-10">
+          <div class="vs-spinner">⚡ VS ⚡</div>
+          <div class="vs-subtitle text-lg sm:text-xl md:text-2xl mt-2 text-purple-300">
+            CALCULANDO DESTINO...
+          </div>
+        </div>
+        
+        <!-- Partículas de energia -->
+        <div class="loading-particles absolute inset-0">
+          <div class="particle p1"></div>
+          <div class="particle p2"></div>
+          <div class="particle p3"></div>
+          <div class="particle p4"></div>
+          <div class="particle p5"></div>
+          <div class="particle p6"></div>
+        </div>
+        
+        <!-- Loading dots melhorado -->
+        <div class="loading-dots-enhanced text-base sm:text-lg md:text-xl mt-4 relative z-10">
+          <span class="dot-1">●</span>
+          <span class="dot-2">●</span>
+          <span class="dot-3">●</span>
         </div>
       </div>
-      <div class="loading-bar-container mt-4">
-        <div class="loading-bar"></div>
+      
+      <!-- Barra de progresso melhorada -->
+      <div class="loading-bar-container-enhanced mt-6">
+        <div class="loading-bar-bg">
+          <div class="loading-bar-epic"></div>
+          <div class="loading-bar-glow"></div>
+        </div>
+        <div class="loading-percentage text-white text-sm mt-2">0%</div>
       </div>
     `;
 
     // Vibração de início de carregamento
     this.vibrate([100, 50, 100]);
 
+    // Animar porcentagem de carregamento
+    this.animateLoadingPercentage();
+
+    // Efeitos sonoros extras durante carregamento
+    setTimeout(() => {
+      this.soundGenerator.generateSuspenseSound();
+    }, 500);
+
     // Vibração no meio do carregamento
     setTimeout(() => {
       this.vibrate([150, 75, 150]);
     }, 1500);
 
+    // Efeito final de carregamento
+    setTimeout(() => {
+      this.vibrate([200, 100, 200]);
+      // Adicionar efeito de "carregamento completo"
+      const percentage = document.querySelector('.loading-percentage');
+      if (percentage) {
+        percentage.textContent = '100%';
+        percentage.style.color = '#10b981';
+        percentage.style.fontWeight = 'bold';
+      }
+    }, 2800);
+
     // Após 3 segundos, iniciar a sequência dinâmica
     setTimeout(() => {
       this.startDynamicDominance();
     }, 3000);
+  }
+
+  animateLoadingPercentage() {
+    const percentage = document.querySelector('.loading-percentage');
+    if (!percentage) return;
+
+    let current = 0;
+    const target = 100;
+    const duration = 3000; // 3 segundos
+    const increment = target / (duration / 50); // Atualizar a cada 50ms
+
+    const animate = () => {
+      current += increment;
+      if (current > target) current = target;
+
+      percentage.textContent = `${Math.floor(current)}%`;
+
+      // Mudar cor conforme progresso
+      if (current < 30) {
+        percentage.style.color = '#ef4444'; // Vermelho
+      } else if (current < 70) {
+        percentage.style.color = '#f59e0b'; // Amarelo
+      } else if (current < 100) {
+        percentage.style.color = '#3b82f6'; // Azul
+      } else {
+        percentage.style.color = '#10b981'; // Verde
+        percentage.style.fontWeight = 'bold';
+      }
+
+      if (current < target) {
+        setTimeout(animate, 50);
+      }
+    };
+
+    animate();
   }
 
   startDynamicDominance() {
@@ -1364,7 +1644,7 @@ class RevealExperience {
       this.vibrate([100, 50, 100, 50, 300, 150, 300]);
     }, 3000); // 3 segundos
 
-    // ========== FASE 3: VOLTA TRIUNFAL DA MENINA! (10-12 segundos do duelo total) ==========
+    // ========== FASE 3: VOLTA TRIUNFAL DA MENINA! (10-20 segundos do duelo total - 10s de vitória!) ==========
     setTimeout(() => {
       console.log('🎭 FASE 3: REVIRAVOLTA FINAL! Menina retoma o controle definitivamente!');
 
@@ -1388,7 +1668,7 @@ class RevealExperience {
         meninoBar.style.boxShadow = 'none';
       }
 
-      // Indicador de vitória final
+      // Indicador de vitória inicial
       if (versusContainer) {
         versusContainer.innerHTML = `
           <div class="winner-indicator text-2xl sm:text-3xl md:text-4xl text-pink-400 font-bold dancing-script animate-pulse">
@@ -1402,7 +1682,24 @@ class RevealExperience {
 
       // Som extra de triunfo
       this.soundGenerator.generateSuspenseSound();
-    }, 7000); // Ajustado de 8000 para 7000 (7s após início da fase 1 = 10s do duelo total)
+
+      // === SEQUÊNCIA DE VITÓRIA SIMPLIFICADA (10 SEGUNDOS) ===
+
+      // 1ª Frase: Vitória inicial (0-5s) - A frase já está definida acima
+
+      // 4ª Frase: Final épico com nome (5-10s)
+      setTimeout(() => {
+        if (versusContainer) {
+          versusContainer.innerHTML = `
+            <div class="winner-indicator text-xl sm:text-2xl md:text-3xl text-pink-300 font-bold dancing-script animate-bounce">
+              ✨ CELINA SERÁ NOSSA PRINCESA! ✨
+            </div>
+          `;
+        }
+        this.vibrate([500, 200, 500, 200, 800]);
+        this.soundGenerator.generateSuspenseSound();
+      }, 5000); // Mudado de 8500 para 5000 (meio da fase 3)
+    }, 7000); // Mantido em 7s (início da fase 3 aos 10s do duelo total)
 
     // ========== EFEITOS VISUAIS EXTRAS ==========
     // Adicionar partículas durante toda a sequência
@@ -1454,12 +1751,40 @@ class RevealExperience {
       createPhaseParticles('#3b82f6', 'menino', 10);
     }, 3000); // 3s após início da fase 1 (6s do duelo total)
 
-    // Fase 3: Explosão de partículas rosa (vitória menina)
+    // Fase 3: Explosão de partículas rosa (vitória menina) - 10 segundos simplificados!
     setTimeout(() => {
-      createPhaseParticles('#ec4899', 'menina', 15);
-      // Partículas extras para vitória
-      setTimeout(() => createPhaseParticles('#f472b6', 'menina', 12), 500);
-      setTimeout(() => createPhaseParticles('#ec4899', 'menina', 10), 1000);
+      // 1ª Sequência: Vitória inicial (0-5s) - "🎀 MENINA VENCEU! 🎀"
+      createPhaseParticles('#ec4899', 'menina', 18);
+      setTimeout(() => createPhaseParticles('#f472b6', 'menina', 15), 500);
+      setTimeout(() => createPhaseParticles('#ec4899', 'menina', 12), 1500);
+      setTimeout(() => createPhaseParticles('#ff69b4', 'menina', 16), 2500);
+      setTimeout(() => createPhaseParticles('#ec4899', 'menina', 20), 3500);
+      setTimeout(() => createPhaseParticles('#f472b6', 'menina', 18), 4500);
+
+      // 2ª Sequência: Final épico (5-10s) - "✨ CELINA SERÁ NOSSA PRINCESA! ✨"
+      setTimeout(() => {
+        createPhaseParticles('#ec4899', 'menina', 25);
+        createPhaseParticles('#f472b6', 'menina', 22);
+        createPhaseParticles('#ff69b4', 'menina', 24);
+      }, 5000);
+
+      setTimeout(() => {
+        createPhaseParticles('#ff69b4', 'menina', 28);
+        createPhaseParticles('#ec4899', 'menina', 26);
+      }, 6500);
+
+      setTimeout(() => {
+        createPhaseParticles('#ec4899', 'menina', 30);
+        createPhaseParticles('#f472b6', 'menina', 28);
+        createPhaseParticles('#ff69b4', 'menina', 32);
+      }, 8000);
+
+      // Chuva final épica (9-10s)
+      setTimeout(() => {
+        createPhaseParticles('#ec4899', 'menina', 35);
+        createPhaseParticles('#f472b6', 'menina', 32);
+        createPhaseParticles('#ff69b4', 'menina', 38);
+      }, 9000);
     }, 7000); // 7s após início da fase 1 (10s do duelo total)
   }
 
