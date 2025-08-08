@@ -142,31 +142,37 @@ class RevealExperience {
         await this.soundGenerator.initialize();
       }
 
-      // 2. Pré-autorizar música do clímax
+      // 2. Pré-autorizar música do clímax SEM reprodução audível
       if (this.climaxMusic) {
+        // CORREÇÃO: Garantir volume ZERO e pausar imediatamente
         this.climaxMusic.volume = 0;
+        this.climaxMusic.muted = true; // Adicionar mute como proteção extra
         const climaxPlay = this.climaxMusic.play();
         if (climaxPlay) {
           await climaxPlay
             .then(() => {
+              // Parar imediatamente após autorização
               this.climaxMusic.pause();
               this.climaxMusic.currentTime = 0;
-              console.log('✅ Música do clímax pré-autorizada');
+              this.climaxMusic.muted = false; // Remover mute para uso futuro
+              console.log('✅ Música do clímax pré-autorizada SILENCIOSAMENTE');
             })
             .catch(() => console.log('❌ Falha ao pré-autorizar música do clímax'));
         }
       }
 
-      // 3. Pré-autorizar música de celebração
+      // 3. Pré-autorizar música de celebração SEM reprodução audível
       if (this.celebrationMusic) {
         this.celebrationMusic.volume = 0;
+        this.celebrationMusic.muted = true; // Adicionar mute como proteção extra
         const celebrationPlay = this.celebrationMusic.play();
         if (celebrationPlay) {
           await celebrationPlay
             .then(() => {
               this.celebrationMusic.pause();
               this.celebrationMusic.currentTime = 0;
-              console.log('✅ Música de celebração pré-autorizada');
+              this.celebrationMusic.muted = false; // Remover mute para uso futuro
+              console.log('✅ Música de celebração pré-autorizada SILENCIOSAMENTE');
             })
             .catch(() => console.log('❌ Falha ao pré-autorizar música de celebração'));
         }
@@ -208,41 +214,47 @@ class RevealExperience {
       buildupTime + EXPERIENCE_CONFIG.timing.phases.duel + EXPERIENCE_CONFIG.timing.phases.reveal;
 
     // CORREÇÃO: Agendar música do clímax EXATAMENTE quando a fase buildup começar
-    // Usar um intervalo de verificação em vez de timeout único para maior precisão
-    const climaxCheckInterval = setInterval(() => {
-      // Verificação rigorosa: fase buildup E áudios autorizados E ainda não tocando
-      if (
-        this.currentPhase === 'buildup' &&
-        this.climaxMusic &&
-        this.allAudiosPreAuthorized &&
-        this.climaxMusic.paused
-      ) {
-        console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
-        this.climaxMusic.currentTime = 0;
-        this.climaxMusic.volume = 0.8;
-        this.climaxMusic
-          .play()
-          .then(() => {
-            console.log('✅ Música do clímax auto-reproduzida na fase correta');
-            clearInterval(climaxCheckInterval); // Parar verificação após sucesso
-          })
-          .catch((err) => console.log('❌ Falha na auto-reprodução do clímax:', err));
-      }
-
-      // Parar verificação após a fase buildup
-      if (
-        this.currentPhase !== 'buildup' &&
-        this.currentPhase !== 'mystery' &&
-        this.currentPhase !== 'countdown'
-      ) {
-        clearInterval(climaxCheckInterval);
-      }
-    }, 500); // Verificar a cada 500ms
-
-    // Timeout de segurança para limpar o intervalo
+    // Começar a verificação apenas APÓS o countdown terminar
     setTimeout(() => {
-      clearInterval(climaxCheckInterval);
-    }, buildupTime + 5000);
+      console.log('🕐 Iniciando monitoramento para áudio do clímax...');
+      const climaxCheckInterval = setInterval(() => {
+        // Verificação rigorosa: fase buildup E áudios autorizados E ainda não tocando
+        if (
+          this.currentPhase === 'buildup' &&
+          this.climaxMusic &&
+          this.allAudiosPreAuthorized &&
+          this.climaxMusic.paused
+        ) {
+          console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
+          this.climaxMusic.currentTime = 0;
+          this.climaxMusic.volume = 0.8;
+          this.climaxMusic.muted = false; // Garantir que não está mudo
+          this.climaxMusic
+            .play()
+            .then(() => {
+              console.log('✅ Música do clímax auto-reproduzida na fase correta');
+              clearInterval(climaxCheckInterval); // Parar verificação após sucesso
+            })
+            .catch((err) => console.log('❌ Falha na auto-reprodução do clímax:', err));
+        }
+
+        // Parar verificação após a fase buildup
+        if (
+          this.currentPhase !== 'buildup' &&
+          this.currentPhase !== 'mystery' &&
+          this.currentPhase !== 'countdown'
+        ) {
+          clearInterval(climaxCheckInterval);
+          console.log('🏁 Parou monitoramento do clímax - fase mudou');
+        }
+      }, 500); // Verificar a cada 500ms
+
+      // Timeout de segurança para limpar o intervalo
+      setTimeout(() => {
+        clearInterval(climaxCheckInterval);
+        console.log('⏰ Timeout de segurança - parou monitoramento do clímax');
+      }, buildupTime - countdownTime + 5000); // Duração da mystery + buildup + 5s de margem
+    }, countdownTime + 1000); // Começar 1 segundo APÓS o countdown terminar
 
     // Agendar música de celebração
     setTimeout(() => {
@@ -381,6 +393,19 @@ class RevealExperience {
     if (this.experienceStarted) {
       console.log('Experiência já foi iniciada, ignorando clique duplicado');
       return;
+    }
+
+    // PROTEÇÃO: Garantir que NENHUM áudio está tocando antes de iniciar
+    if (this.climaxMusic && !this.climaxMusic.paused) {
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+      console.log('🛑 Áudio do clímax parado antes de iniciar experiência');
+    }
+
+    if (this.celebrationMusic && !this.celebrationMusic.paused) {
+      this.celebrationMusic.pause();
+      this.celebrationMusic.currentTime = 0;
+      console.log('🛑 Áudio de celebração parado antes de iniciar experiência');
     }
 
     this.experienceStarted = true;
