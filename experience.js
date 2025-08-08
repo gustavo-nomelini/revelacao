@@ -6,7 +6,7 @@ const EXPERIENCE_CONFIG = {
     celebration: true,
   },
   timing: {
-    countdown: 2,
+    countdown: 10,
     phases: {
       mystery: 14000,
       buildup: 17000,
@@ -144,30 +144,30 @@ class RevealExperience {
                 <div id="mysteryParticles" class="absolute inset-0"></div>
                 
                 <!-- Conteúdo central -->
-                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-                    <div class="mystery-content opacity-0 animate-pulse">
+                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
+                    <div class="mystery-content opacity-0 animate-pulse max-w-sm sm:max-w-lg md:max-w-4xl mx-auto">
                         <!-- Símbolos misteriosos -->
-                        <div class="mystery-symbols text-6xl md:text-8xl mb-8 space-x-4">
+                        <div class="mystery-symbols text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl mb-4 sm:mb-6 md:mb-8 space-x-2 sm:space-x-3 md:space-x-4">
                             <span class="inline-block animate-bounce" style="animation-delay: 0s">🔮</span>
                             <span class="inline-block animate-bounce" style="animation-delay: 0.2s">✨</span>
                             <span class="inline-block animate-bounce" style="animation-delay: 0.4s">🌟</span>
                         </div>
                         
                         <!-- Texto misterioso -->
-                        <h2 class="dancing-script text-4xl md:text-6xl text-white mb-6">
+                        <h2 class="dancing-script text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white mb-3 sm:mb-4 md:mb-6">
                             Os segredos do universo estão se alinhando...
                         </h2>
                         
-                        <p class="poppins text-xl md:text-2xl text-purple-200 mb-8">
+                        <p class="poppins text-base sm:text-lg md:text-xl lg:text-2xl text-purple-200 mb-4 sm:mb-6 md:mb-8">
                             As estrelas sussurram o destino do nosso pequeno tesouro
                         </p>
                         
                         <!-- Indicador de progresso -->
-                        <div class="progress-bar w-64 h-2 bg-white/20 rounded-full mx-auto overflow-hidden">
+                        <div class="progress-bar w-48 sm:w-56 md:w-64 h-2 bg-white/20 rounded-full mx-auto overflow-hidden">
                             <div id="progressFill" class="h-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transition-all duration-1000 w-0"></div>
                         </div>
                         
-                        <p class="poppins text-sm text-white/70 mt-4">
+                        <p class="poppins text-xs sm:text-sm text-white/70 mt-2 sm:mt-3 md:mt-4">
                             Decifrando os mistérios...
                         </p>
                     </div>
@@ -274,27 +274,27 @@ class RevealExperience {
                 <div class="absolute inset-0 buildup-bg"></div>
                 
                 <!-- Conteúdo central -->
-                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-                    <div class="buildup-content">
+                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
+                    <div class="buildup-content max-w-sm sm:max-w-lg md:max-w-4xl mx-auto">
                         <!-- Título dramático -->
-                        <h2 class="dancing-script text-5xl md:text-7xl text-white mb-8 buildup-title">
+                        <h2 class="dancing-script text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white mb-4 sm:mb-6 md:mb-8 buildup-title">
                             O momento chegou!
                         </h2>
                         
                         <!-- Subtítulo -->
-                        <p class="poppins text-2xl md:text-3xl text-white mb-12 buildup-subtitle">
+                        <p class="poppins text-lg sm:text-xl md:text-2xl lg:text-3xl text-white mb-6 sm:mb-8 md:mb-12 buildup-subtitle">
                             Nosso pequeno tesouro é...
                         </p>
                         
                         <!-- Pontos de suspense -->
-                        <div class="suspense-dots text-6xl md:text-8xl text-white mb-8">
+                        <div class="suspense-dots text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white mb-4 sm:mb-6 md:mb-8">
                             <span class="dot-1">.</span>
                             <span class="dot-2">.</span>
                             <span class="dot-3">.</span>
                         </div>
                         
                         <!-- Contador final -->
-                        <div id="finalCountdown" class="final-countdown text-8xl md:text-9xl font-bold text-white mb-8">
+                        <div id="finalCountdown" class="final-countdown text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white mb-4 sm:mb-6 md:mb-8">
                             5
                         </div>
                     </div>
@@ -394,27 +394,27 @@ class RevealExperience {
         <div id="energyEffects" class="absolute inset-0"></div>
         
         <!-- Conteúdo principal -->
-        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-          <div class="duel-content max-w-6xl mx-auto">
+        <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
+          <div class="duel-content max-w-sm sm:max-w-lg md:max-w-4xl lg:max-w-6xl mx-auto">
             <!-- Título dramático -->
-            <h2 class="dancing-script text-4xl md:text-6xl text-white mb-8 duel-title">
+            <h2 class="dancing-script text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white mb-4 sm:mb-6 md:mb-8 duel-title">
               O Duelo Final das Possibilidades
             </h2>
             
-            <p class="poppins text-xl md:text-2xl text-white/90 mb-12">
+            <p class="poppins text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/90 mb-6 sm:mb-8 md:mb-12">
               Quem será escolhido pelo destino?
             </p>
             
             <!-- Container das imagens do duelo -->
-            <div class="duel-container flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 mb-8">
+            <div class="duel-container flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-16 mb-4 sm:mb-6 md:mb-8">
               <!-- Lado Menino -->
               <div class="duel-side menino-side">
                 <div class="image-container relative">
                   <div class="energy-aura menino-aura"></div>
-                  <img src="menino.jpeg" alt="Possível Menino" class="duel-image menino-image rounded-full border-4 border-blue-400 shadow-2xl" />
+                  <img src="menino.jpeg" alt="Possível Menino" class="duel-image menino-image rounded-full border-2 sm:border-3 md:border-4 border-blue-400 shadow-2xl w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 object-cover" />
                   <div class="image-overlay menino-overlay"></div>
                 </div>
-                <h3 class="dancing-script text-2xl md:text-3xl text-blue-300 mt-4">Francisco</h3>
+                <h3 class="dancing-script text-lg sm:text-xl md:text-2xl lg:text-3xl text-blue-300 mt-2 sm:mt-3 md:mt-4">Francisco</h3>
                 <div class="power-indicator menino-power">
                   <div class="power-bar menino-bar"></div>
                 </div>
@@ -422,7 +422,7 @@ class RevealExperience {
               
               <!-- Versus -->
               <div class="versus-container">
-                <div class="versus-symbol text-6xl md:text-8xl text-white font-bold">
+                <div class="versus-symbol text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl text-white font-bold">
                   ⚡ VS ⚡
                 </div>
                 <div class="versus-energy"></div>
@@ -432,10 +432,10 @@ class RevealExperience {
               <div class="duel-side menina-side">
                 <div class="image-container relative">
                   <div class="energy-aura menina-aura"></div>
-                  <img src="menina.jpeg" alt="Possível Menina" class="duel-image menina-image rounded-full border-4 border-pink-400 shadow-2xl" />
+                  <img src="menina.jpeg" alt="Possível Menina" class="duel-image menina-image rounded-full border-2 sm:border-3 md:border-4 border-pink-400 shadow-2xl w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 object-cover" />
                   <div class="image-overlay menina-overlay"></div>
                 </div>
-                <h3 class="dancing-script text-2xl md:text-3xl text-pink-300 mt-4">Celina</h3>
+                <h3 class="dancing-script text-lg sm:text-xl md:text-2xl lg:text-3xl text-pink-300 mt-2 sm:mt-3 md:mt-4">Celina</h3>
                 <div class="power-indicator menina-power">
                   <div class="power-bar menina-bar"></div>
                 </div>
@@ -745,19 +745,19 @@ class RevealExperience {
                 <div class="absolute inset-0 reveal-bg"></div>
                 
                 <!-- Conteúdo principal -->
-                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-                    <div class="reveal-content">
+                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-2 sm:px-4">
+                    <div class="reveal-content max-w-sm sm:max-w-lg md:max-w-4xl mx-auto">
                         <!-- O grande reveal -->
-                        <div class="reveal-text mb-8">
-                            <h1 class="dancing-script text-6xl md:text-9xl font-bold text-white mb-4 reveal-title">
+                        <div class="reveal-text mb-4 sm:mb-6 md:mb-8">
+                            <h1 class="dancing-script text-4xl sm:text-5xl md:text-6xl lg:text-8xl xl:text-9xl font-bold text-white mb-2 sm:mb-3 md:mb-4 reveal-title">
                                 É MENINA!
                             </h1>
                             
-                            <div class="girl-emojis text-8xl md:text-9xl mb-8">
+                            <div class="girl-emojis text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl mb-4 sm:mb-6 md:mb-8">
                                 👧🏻💕👶🏻💖
                             </div>
                             
-                            <p class="poppins text-3xl md:text-4xl text-pink-100 mb-8">
+                            <p class="poppins text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-pink-100 mb-4 sm:mb-6 md:mb-8">
                                 Nossa princesinha está chegando!
                             </p>
                         </div>
@@ -902,70 +902,71 @@ class RevealExperience {
                 <div id="balloons" class="absolute inset-0"></div>
                 
                 <!-- Conteúdo principal -->
-                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center px-4">
-                    <div class="celebration-content max-w-4xl mx-auto">
+                <div class="relative z-10 flex flex-col items-center justify-center min-h-full text-center px-2 sm:px-4 py-4">
+                    <div class="celebration-content max-w-sm sm:max-w-lg md:max-w-4xl mx-auto w-full">
                         <!-- Título de celebração -->
-                        <h1 class="dancing-script text-5xl md:text-7xl font-bold text-white mb-8 celebration-title">
+                        <h1 class="dancing-script text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 md:mb-8 celebration-title">
                             Bem-vinda, Celina ! 👑
                         </h1>
                         
                         <!-- Mensagem especial -->
-                        <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-3xl p-8 mb-8">
-                            <p class="poppins text-xl md:text-2xl text-white mb-6">
+                        <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8">
+                            <p class="poppins text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-4 sm:mb-6">
                                 Uma nova estrela nasceu em nossos corações ! ⭐
                             </p>
                             
-                            <div class="celebration-details grid grid-cols-1 md:grid-cols-2 gap-6 text-white">
-                                <div class="detail-card bg-pink-500/30 rounded-xl p-4">
-                                    <h3 class="dancing-script text-2xl mb-2">💖 Amor Infinito</h3>
-                                    <p class="poppins text-sm">Preparados para amar incondicionalmente</p>
+                            <div class="celebration-details grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-white">
+                                <div class="detail-card bg-pink-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">💖 Amor Infinito</h3>
+                                    <p class="poppins text-xs sm:text-sm">Preparados para amar incondicionalmente</p>
                                 </div>
                                 
-                                <div class="detail-card bg-purple-500/30 rounded-xl p-4">
-                                    <h3 class="dancing-script text-2xl mb-2">🌸 Doçura Pura</h3>
-                                    <p class="poppins text-sm">Ela trará toda a doçura do mundo</p>
+                                <div class="detail-card bg-purple-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">🌸 Doçura Pura</h3>
+                                    <p class="poppins text-xs sm:text-sm">Ela trará toda a doçura do mundo</p>
                                 </div>
                                 
-                                <div class="detail-card bg-blue-500/30 rounded-xl p-4">
-                                    <h3 class="dancing-script text-2xl mb-2">✨ Magia Diária</h3>
-                                    <p class="poppins text-sm">Cada dia será uma nova aventura</p>
+                                <div class="detail-card bg-blue-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">✨ Magia Diária</h3>
+                                    <p class="poppins text-xs sm:text-sm">Cada dia será uma nova aventura</p>
                                 </div>
                                 
-                                <div class="detail-card bg-green-500/30 rounded-xl p-4">
-                                    <h3 class="dancing-script text-2xl mb-2">🦋 Liberdade</h3>
-                                    <p class="poppins text-sm">Para voar alto e sonhar grande</p>
+                                <div class="detail-card bg-green-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">🦋 Liberdade</h3>
+                                    <p class="poppins text-xs sm:text-sm">Para voar alto e sonhar grande</p>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Botão de compartilhamento -->
-                        <button id="shareButton" class="share-button bg-white text-pink-600 px-8 py-4 rounded-full text-xl font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105">
+                        <button id="shareButton" class="share-button bg-white text-pink-600 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg md:text-xl font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 mb-4 sm:mb-6">
                             Compartilhar a Alegria! 📱
                         </button>
                         
                         <!-- Controles de música -->
-                        <div class="music-controls mt-6 flex justify-center items-center gap-4">
-                            <button id="musicToggle" class="music-button bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition-all">
+                        <div class="music-controls flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
+                            <button id="musicToggle" class="music-button bg-white/20 backdrop-blur-sm text-white px-3 sm:px-4 py-2 rounded-full hover:bg-white/30 transition-all text-sm sm:text-base">
                                 🎵 Pausar Música
                             </button>
+                            </button>
                             <div class="volume-control flex items-center gap-2">
-                                <span class="text-white text-sm">🔊</span>
-                                <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider">
+                                <span class="text-white text-xs sm:text-sm">🔊</span>
+                                <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider w-16 sm:w-20">
                             </div>
                         </div>
                         
                         <!-- Botão para repetir experiência -->
-                        <div class="repeat-section mt-8">
-                            <button id="repeatButton" class="repeat-button bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-2xl">
+                        <div class="repeat-section">
+                            <button id="repeatButton" class="repeat-button bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base md:text-lg font-bold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-2xl mb-2 sm:mb-3">
                                 🔄 Repetir a Magia ✨
                             </button>
-                            <p class="poppins text-sm text-white/60 mt-2">
+                            <p class="poppins text-xs sm:text-sm text-white/60">
                                 Quer viver essa emoção novamente?
                             </p>
                         </div>
                         
                         <!-- Agradecimento -->
-                        <p class="poppins text-lg text-white/80 mt-8">
+                        <p class="poppins text-sm sm:text-base md:text-lg text-white/80 mt-4 sm:mt-6 md:mt-8">
                             Obrigado por compartilhar este momento mágico conosco! 💕
                         </p>
                     </div>
@@ -1047,6 +1048,55 @@ class RevealExperience {
                         box-shadow: 0 0 30px rgba(255, 105, 180, 0.8);
                     }
                 }
+                
+                /* Responsividade móvel adicional */
+                @media (max-width: 640px) {
+                    .celebration-content {
+                        padding: 0 0.5rem;
+                    }
+                    
+                    .celebration-details {
+                        gap: 0.75rem;
+                    }
+                    
+                    .detail-card {
+                        padding: 0.75rem;
+                    }
+                    
+                    .celebration-message {
+                        margin-bottom: 1rem;
+                        padding: 1rem;
+                    }
+                    
+                    .share-button, .repeat-button {
+                        width: 100%;
+                        max-width: 280px;
+                    }
+                    
+                    .music-controls {
+                        flex-direction: column;
+                        gap: 0.75rem;
+                    }
+                    
+                    .volume-control {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .celebration-title {
+                        line-height: 1.1;
+                    }
+                    
+                    .detail-card h3 {
+                        font-size: 1rem;
+                    }
+                    
+                    .detail-card p {
+                        font-size: 0.75rem;
+                    }
+                }
             </style>
         `;
 
@@ -1120,6 +1170,61 @@ class RevealExperience {
             cursor: pointer;
             border: none;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Estilos móveis globais */
+        @media (max-width: 640px) {
+            .volume-slider {
+                width: 80px;
+            }
+            
+            .music-button {
+                font-size: 0.875rem;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            /* Garantir que textos não quebrem linha inadequadamente */
+            .dancing-script {
+                word-wrap: break-word;
+                hyphens: auto;
+            }
+            
+            /* Espaçamento otimizado para mobile */
+            .text-center {
+                text-align: center;
+            }
+            
+            /* Botões com largura adequada */
+            button {
+                min-height: 44px; /* Tamanho mínimo recomendado para toque */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .volume-slider {
+                width: 60px;
+            }
+            
+            .music-button {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.5rem;
+            }
+        }
+        
+        /* Otimizações para altura de tela pequena */
+        @media (max-height: 600px) {
+            .celebration-content {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+            
+            .buildup-content {
+                gap: 0.5rem;
+            }
+            
+            .reveal-content {
+                gap: 0.5rem;
+            }
         }
     `;
     document.head.appendChild(repeatStyles);
