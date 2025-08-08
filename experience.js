@@ -32,11 +32,62 @@ class RevealExperience {
     this.animationId = null;
     this.celebrationMusic = null;
     this.climaxMusic = null;
+    this.isMobile = this.detectMobile();
+    this.audioUnlocked = false;
 
     this.initializeElements();
     this.bindEvents();
     this.loadCelebrationMusic();
     this.loadClimaxMusic();
+
+    // Preparações específicas para mobile
+    if (this.isMobile) {
+      this.prepareMobileAudio();
+    }
+  }
+
+  detectMobile() {
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      window.innerWidth <= 768
+    );
+  }
+
+  prepareMobileAudio() {
+    // Adicionar listeners para desbloqueio de áudio no mobile
+    const unlockAudio = () => {
+      if (!this.audioUnlocked) {
+        // Tentar reproduzir um som silencioso para desbloquear o contexto de áudio
+        if (this.celebrationMusic) {
+          const originalVolume = this.celebrationMusic.volume;
+          this.celebrationMusic.volume = 0;
+          const playPromise = this.celebrationMusic.play();
+          if (playPromise) {
+            playPromise
+              .then(() => {
+                this.celebrationMusic.pause();
+                this.celebrationMusic.currentTime = 0;
+                this.celebrationMusic.volume = originalVolume;
+                this.audioUnlocked = true;
+                console.log('Áudio desbloqueado no mobile');
+
+                // Remover listeners após desbloqueio
+                document.removeEventListener('touchstart', unlockAudio);
+                document.removeEventListener('touchend', unlockAudio);
+                document.removeEventListener('click', unlockAudio);
+              })
+              .catch(() => {
+                console.log('Falha ao desbloquear áudio');
+              });
+          }
+        }
+      }
+    };
+
+    // Adicionar listeners para primeira interação
+    document.addEventListener('touchstart', unlockAudio, { once: true });
+    document.addEventListener('touchend', unlockAudio, { once: true });
+    document.addEventListener('click', unlockAudio, { once: true });
   }
 
   initializeElements() {
@@ -60,8 +111,24 @@ class RevealExperience {
     this.celebrationMusic = new Audio(
       './O Espírito da Coisa - Ligeiramente Grávida [zdeKhxfiSVs].mp3'
     );
-    this.celebrationMusic.preload = 'auto';
-    this.celebrationMusic.volume = 0.7;
+
+    // Configurações otimizadas para mobile
+    if (this.isMobile) {
+      this.celebrationMusic.preload = 'metadata'; // Carregar apenas metadados no mobile
+      this.celebrationMusic.volume = 0.8; // Volume um pouco mais alto no mobile
+    } else {
+      this.celebrationMusic.preload = 'auto';
+      this.celebrationMusic.volume = 0.7;
+    }
+
+    // Adicionar listeners para feedback de carregamento
+    this.celebrationMusic.addEventListener('canplaythrough', () => {
+      console.log('Música de celebração carregada e pronta');
+    });
+
+    this.celebrationMusic.addEventListener('error', (e) => {
+      console.error('Erro ao carregar música de celebração:', e);
+    });
   }
 
   loadClimaxMusic() {
@@ -80,6 +147,25 @@ class RevealExperience {
     try {
       // Habilitar áudio
       await this.initializeAudio();
+
+      // Preparar música de celebração para mobile (pré-carregamento)
+      if (this.celebrationMusic) {
+        this.celebrationMusic.load();
+        // Tentar uma reprodução silenciosa para "acordar" o contexto de áudio
+        this.celebrationMusic.volume = 0;
+        const silentPlay = this.celebrationMusic.play();
+        if (silentPlay) {
+          silentPlay
+            .then(() => {
+              this.celebrationMusic.pause();
+              this.celebrationMusic.currentTime = 0;
+              console.log('Música de celebração preparada para mobile');
+            })
+            .catch((e) => {
+              console.log('Preparação silenciosa falhou, música será ativada manualmente');
+            });
+        }
+      }
 
       // Atualizar botão
       this.enterButton.disabled = true;
@@ -945,9 +1031,17 @@ class RevealExperience {
                         
                         <!-- Controles de música -->
                         <div class="music-controls flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
-                            <button id="musicToggle" class="music-button bg-white/20 backdrop-blur-sm text-white px-3 sm:px-4 py-2 rounded-full hover:bg-white/30 transition-all text-sm sm:text-base">
-                                🎵 Pausar Música
-                            </button>
+                            <!-- Indicador de status da música -->
+                            <div id="musicStatus" class="music-status text-white/80 text-xs sm:text-sm mb-2 sm:mb-0 text-center">
+                                ${
+                                  this.isMobile
+                                    ? '🎵 Toque no botão para ouvir nossa música especial!'
+                                    : '🎵 Música da celebração'
+                                }
+                            </div>
+                            
+                            <button id="musicToggle" class="music-button bg-gradient-to-r from-pink-500/80 to-purple-600/80 backdrop-blur-sm text-white px-4 sm:px-5 py-2 sm:py-3 rounded-full hover:from-pink-600/80 hover:to-purple-700/80 transition-all text-sm sm:text-base font-semibold border border-white/20 shadow-lg">
+                                🎵 Tocar Música
                             </button>
                             <div class="volume-control flex items-center gap-2">
                                 <span class="text-white text-xs sm:text-sm">🔊</span>
@@ -1180,6 +1274,34 @@ class RevealExperience {
             
             .music-button {
                 font-size: 0.875rem;
+                padding: 0.75rem 1rem;
+                min-height: 44px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                animation: mobileMusicPulse 2s ease-in-out infinite;
+            }
+            
+            .music-controls {
+                background: rgba(0, 0, 0, 0.2);
+                backdrop-filter: blur(10px);
+                border-radius: 1rem;
+                padding: 1rem;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            
+            .music-status {
+                font-weight: 600;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            }
+        }
+        
+        @keyframes mobileMusicPulse {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(255, 105, 180, 0.7);
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 6px rgba(255, 105, 180, 0.3);
+            }
+        }
                 padding: 0.5rem 0.75rem;
             }
             
@@ -1300,18 +1422,51 @@ class RevealExperience {
       this.vibrate([100, 100, 100]);
     });
 
-    // Controle de música
+    // Controle de música melhorado para mobile
+    const musicStatus = document.getElementById('musicStatus');
     if (musicToggle && this.celebrationMusic) {
+      // Definir estado inicial baseado no status da música
+      const updateMusicButton = () => {
+        if (this.celebrationMusic.paused) {
+          musicToggle.innerHTML = '▶️ Tocar Música';
+          musicToggle.className =
+            'music-button bg-gradient-to-r from-green-500/80 to-blue-600/80 backdrop-blur-sm text-white px-4 sm:px-5 py-2 sm:py-3 rounded-full hover:from-green-600/80 hover:to-blue-700/80 transition-all text-sm sm:text-base font-semibold border border-white/20 shadow-lg animate-pulse';
+          if (musicStatus) musicStatus.innerHTML = '🔇 Toque para ouvir a música';
+        } else {
+          musicToggle.innerHTML = '⏸️ Pausar Música';
+          musicToggle.className =
+            'music-button bg-gradient-to-r from-pink-500/80 to-purple-600/80 backdrop-blur-sm text-white px-4 sm:px-5 py-2 sm:py-3 rounded-full hover:from-pink-600/80 hover:to-purple-700/80 transition-all text-sm sm:text-base font-semibold border border-white/20 shadow-lg';
+          if (musicStatus) musicStatus.innerHTML = '🎵 Música tocando';
+        }
+      };
+
+      // Estado inicial
+      updateMusicButton();
+
       musicToggle.addEventListener('click', () => {
         if (this.celebrationMusic.paused) {
-          this.celebrationMusic.play();
-          musicToggle.textContent = '🎵 Pausar Música';
+          const playPromise = this.celebrationMusic.play();
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                updateMusicButton();
+              })
+              .catch((error) => {
+                console.log('Erro ao tocar música:', error);
+                if (musicStatus) musicStatus.innerHTML = '❌ Erro ao tocar música';
+              });
+          }
         } else {
           this.celebrationMusic.pause();
-          musicToggle.textContent = '▶️ Tocar Música';
+          updateMusicButton();
         }
         this.vibrate([100]);
       });
+
+      // Listeners para mudanças no estado da música
+      this.celebrationMusic.addEventListener('play', updateMusicButton);
+      this.celebrationMusic.addEventListener('pause', updateMusicButton);
+      this.celebrationMusic.addEventListener('ended', updateMusicButton);
     }
 
     // Controle de volume
@@ -1341,12 +1496,62 @@ class RevealExperience {
   }
   playCelebrationMusic() {
     if (this.celebrationMusic) {
-      // Fade in da música
+      // Reset audio to beginning
+      this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
+
+      // Estratégia diferente para mobile vs desktop
+      if (this.isMobile) {
+        // No mobile, sempre mostrar controle manual primeiro
+        console.log('Mobile detectado - música será controlada manualmente');
+        // Não tentar autoplay no mobile, deixar o usuário controlar
+        return;
+      }
+
+      // Tentar reproduzir a música (desktop)
+      const playPromise = this.celebrationMusic.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Música de celebração iniciada automaticamente');
+            // Aumentar volume gradualmente
+            let volume = 0;
+            const fadeIn = setInterval(() => {
+              volume += 0.05;
+              if (volume >= 0.7) {
+                volume = 0.7;
+                clearInterval(fadeIn);
+              }
+              this.celebrationMusic.volume = volume;
+            }, 100);
+          })
+          .catch((error) => {
+            console.log('Autoplay bloqueado:', error);
+            // Não mostrar botão extra se já temos controles na interface
+          });
+      }
+    }
+  }
+
+  showAudioEnableButton() {
+    // Criar botão para habilitar áudio no mobile
+    const audioButton = document.createElement('button');
+    audioButton.id = 'enableAudioButton';
+    audioButton.className =
+      'fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-pink-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse';
+    audioButton.innerHTML = '🎵 Tocar Música';
+
+    document.body.appendChild(audioButton);
+
+    audioButton.addEventListener('click', () => {
+      this.celebrationMusic.currentTime = 0;
+      this.celebrationMusic.volume = 0;
+
       this.celebrationMusic
         .play()
         .then(() => {
-          // Aumentar volume gradualmente
+          // Fade in da música
           let volume = 0;
           const fadeIn = setInterval(() => {
             volume += 0.05;
@@ -1356,11 +1561,21 @@ class RevealExperience {
             }
             this.celebrationMusic.volume = volume;
           }, 100);
+
+          // Remover botão após música começar
+          audioButton.remove();
         })
-        .catch((error) => {
-          console.log('Erro ao reproduzir música:', error);
+        .catch((e) => {
+          console.log('Erro ao tentar tocar música manualmente:', e);
         });
-    }
+    });
+
+    // Auto-remover botão após 10 segundos se não for usado
+    setTimeout(() => {
+      if (audioButton.parentNode) {
+        audioButton.remove();
+      }
+    }, 10000);
   }
 }
 
