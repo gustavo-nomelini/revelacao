@@ -2177,7 +2177,7 @@ class RevealExperience {
 
     // CORREÇÃO: Parada agressiva de TODOS os sons antes da celebração
     console.log('🛑 PARANDO TODOS OS SONS ANTES DA CELEBRAÇÃO...');
-    
+
     // Parar batimento cardíaco imediatamente
     if (this.soundGenerator) {
       this.soundGenerator.stopHeartbeatLoop();
@@ -2971,14 +2971,20 @@ class RevealExperience {
       this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
 
-      console.log(`🎵 Iniciando música de celebração - Platform: ${this.isMobile ? 'MOBILE' : 'DESKTOP'}`);
+      console.log(
+        `🎵 Iniciando música de celebração - Platform: ${this.isMobile ? 'MOBILE' : 'DESKTOP'}`
+      );
 
       // CORREÇÃO: Tentar autoplay para ambas as plataformas, com fallback para mobile
       const playPromise = this.celebrationMusic.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log(`✅ Música de celebração iniciada automaticamente (${this.isMobile ? 'MOBILE' : 'DESKTOP'})`);
+            console.log(
+              `✅ Música de celebração iniciada automaticamente (${
+                this.isMobile ? 'MOBILE' : 'DESKTOP'
+              })`
+            );
             // Aumentar volume gradualmente
             let volume = 0;
             const fadeIn = setInterval(() => {
@@ -2992,7 +2998,7 @@ class RevealExperience {
           })
           .catch((error) => {
             console.log(`❌ Autoplay bloqueado (${this.isMobile ? 'MOBILE' : 'DESKTOP'}):`, error);
-            
+
             if (this.isMobile) {
               // MOBILE: Fallback para controle manual
               console.log('📱 Música preparada para controle manual via botão');
@@ -3001,7 +3007,8 @@ class RevealExperience {
               // DESKTOP: Tentar novamente após pequeno delay
               setTimeout(() => {
                 this.celebrationMusic.volume = 0.7;
-                this.celebrationMusic.play()
+                this.celebrationMusic
+                  .play()
                   .then(() => console.log('✅ Segunda tentativa desktop bem-sucedida'))
                   .catch(() => console.log('❌ Segunda tentativa desktop falhou'));
               }, 500);
