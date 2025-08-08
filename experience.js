@@ -137,9 +137,22 @@ class RevealExperience {
     console.log('🔓 Pré-autorizando todos os áudios para mobile...');
 
     try {
-      // 1. Inicializar contexto de áudio sintético
+      // 1. CORREÇÃO: Inicializar contexto de áudio sintético com interação do usuário
       if (this.soundGenerator && !this.soundGenerator.isInitialized) {
+        console.log('🎵 Inicializando soundGenerator para mobile...');
         await this.soundGenerator.initialize();
+
+        // Verificar se a inicialização foi bem-sucedida
+        if (
+          this.soundGenerator.audioContext &&
+          this.soundGenerator.audioContext.state === 'suspended'
+        ) {
+          console.log('⚠️ AudioContext suspenso, tentando retomar...');
+          await this.soundGenerator.audioContext.resume();
+        }
+        console.log(
+          `✅ SoundGenerator inicializado: ${this.soundGenerator.isInitialized}, Estado: ${this.soundGenerator.audioContext?.state}`
+        );
       }
 
       // 2. NOVA ABORDAGEM: Apenas preparar os áudios SEM tocar
@@ -180,9 +193,7 @@ class RevealExperience {
         this.celebrationMusic.pause();
         this.celebrationMusic.currentTime = 0;
         this.celebrationMusic.muted = false; // Remover mute mas manter pausado
-      }
-
-      // 4. Desbloqueio do contexto de áudio usando uma abordagem mais suave
+      } // 4. Desbloqueio do contexto de áudio usando uma abordagem mais suave
       if (this.soundGenerator && this.soundGenerator.audioContext) {
         try {
           // Em vez de play() nos áudios, usar apenas contexto sintético
@@ -222,7 +233,7 @@ class RevealExperience {
     // Começar a verificação apenas APÓS o countdown terminar
     setTimeout(() => {
       console.log('🕐 Iniciando monitoramento para áudio do clímax...');
-      const climaxCheckInterval = setInterval(() => {
+      const climaxCheckInterval = setInterval(async () => {
         // Verificação rigorosa: fase buildup E áudios preparados E ainda não tocando
         if (
           this.currentPhase === 'buildup' &&
@@ -231,6 +242,16 @@ class RevealExperience {
           this.climaxMusic.paused
         ) {
           console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
+
+          // CORREÇÃO MOBILE: Verificar estado do AudioContext antes de tocar
+          if (
+            this.soundGenerator &&
+            this.soundGenerator.audioContext &&
+            this.soundGenerator.audioContext.state === 'suspended'
+          ) {
+            console.log('⚠️ AudioContext suspenso, tentando retomar antes do clímax...');
+            await this.soundGenerator.audioContext.resume();
+          }
 
           // NOVA ESTRATÉGIA: Tentar play direto, se falhar, desbloquear na hora
           this.climaxMusic.currentTime = 0;
@@ -248,6 +269,15 @@ class RevealExperience {
                 console.log('❌ Falha na auto-reprodução do clímax, tentando desbloqueio:', err);
                 // Se falhou, tentar desbloqueio imediato com play+pause
                 try {
+                  // Primeiro, garantir que o AudioContext está ativo
+                  if (
+                    this.soundGenerator &&
+                    this.soundGenerator.audioContext &&
+                    this.soundGenerator.audioContext.state !== 'running'
+                  ) {
+                    await this.soundGenerator.audioContext.resume();
+                  }
+
                   this.climaxMusic.volume = 0;
                   await this.climaxMusic.play();
                   this.climaxMusic.pause();
@@ -261,9 +291,7 @@ class RevealExperience {
                 }
               });
           }
-        }
-
-        // Parar verificação após a fase buildup
+        } // Parar verificação após a fase buildup
         if (
           this.currentPhase !== 'buildup' &&
           this.currentPhase !== 'mystery' &&
@@ -518,9 +546,46 @@ class RevealExperience {
   }
 
   async initializeAudio() {
-    await this.soundGenerator.initialize();
-    // Iniciar batimento cardíaco
-    this.soundGenerator.startHeartbeatLoop();
+    console.log('🎵 Inicializando áudio...');
+
+    try {
+      await this.soundGenerator.initialize();
+
+      // CORREÇÃO MOBILE: Verificar se o contexto foi realmente inicializado
+      if (this.soundGenerator.audioContext) {
+        console.log(`📱 AudioContext estado: ${this.soundGenerator.audioContext.state}`);
+
+        // Se estiver suspenso, tentar retomar
+        if (this.soundGenerator.audioContext.state === 'suspended') {
+          console.log('⚠️ Tentando retomar AudioContext suspenso...');
+          await this.soundGenerator.audioContext.resume();
+          console.log(`✅ AudioContext retomado: ${this.soundGenerator.audioContext.state}`);
+        }
+      }
+
+      // Iniciar batimento cardíaco apenas se o contexto estiver ativo
+      if (
+        this.soundGenerator.audioContext &&
+        this.soundGenerator.audioContext.state === 'running'
+      ) {
+        this.soundGenerator.startHeartbeatLoop();
+        console.log('✅ Batimento cardíaco iniciado');
+      } else {
+        console.log('⚠️ AudioContext não está rodando, batimento será iniciado quando possível');
+        // Tentar novamente após um delay
+        setTimeout(() => {
+          if (
+            this.soundGenerator.audioContext &&
+            this.soundGenerator.audioContext.state === 'running'
+          ) {
+            this.soundGenerator.startHeartbeatLoop();
+            console.log('✅ Batimento cardíaco iniciado (segunda tentativa)');
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.log('❌ Erro na inicialização de áudio:', error);
+    }
   }
 
   startCountdown() {
@@ -561,6 +626,30 @@ class RevealExperience {
       this.climaxMusic.pause();
       this.climaxMusic.currentTime = 0;
       console.log('🛡️ Áudio do clímax parado durante entrada na fase mystery');
+    }
+
+    // CORREÇÃO MOBILE: Verificar se batimento cardíaco está funcionando
+    if (this.soundGenerator && this.soundGenerator.audioContext) {
+      console.log(
+        `💓 Verificando batimento cardíaco - Estado do contexto: ${this.soundGenerator.audioContext.state}`
+      );
+
+      if (this.soundGenerator.audioContext.state === 'suspended') {
+        console.log('⚠️ AudioContext suspenso na fase mystery, tentando retomar...');
+        this.soundGenerator.audioContext.resume().then(() => {
+          console.log('✅ AudioContext retomado na fase mystery');
+          if (!this.soundGenerator.isHeartbeatPlaying) {
+            this.soundGenerator.startHeartbeatLoop();
+            console.log('💓 Batimento cardíaco reiniciado na fase mystery');
+          }
+        });
+      } else if (
+        !this.soundGenerator.isHeartbeatPlaying &&
+        this.soundGenerator.audioContext.state === 'running'
+      ) {
+        this.soundGenerator.startHeartbeatLoop();
+        console.log('💓 Batimento cardíaco iniciado na fase mystery');
+      }
     }
 
     // Criar conteúdo da fase mistério
