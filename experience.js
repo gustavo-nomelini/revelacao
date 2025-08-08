@@ -2175,6 +2175,25 @@ class RevealExperience {
     document.body.style.height = 'auto';
     document.body.style.minHeight = '100vh';
 
+    // CORREÇÃO: Parada agressiva de TODOS os sons antes da celebração
+    console.log('🛑 PARANDO TODOS OS SONS ANTES DA CELEBRAÇÃO...');
+    
+    // Parar batimento cardíaco imediatamente
+    if (this.soundGenerator) {
+      this.soundGenerator.stopHeartbeatLoop();
+      if (this.soundGenerator.stopAllSounds) {
+        this.soundGenerator.stopAllSounds();
+      }
+      console.log('💓 Batimento cardíaco parado FORÇADAMENTE');
+    }
+
+    // Parar música do clímax imediatamente
+    if (this.climaxMusic) {
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+      console.log('🎵 Música do clímax parada FORÇADAMENTE');
+    }
+
     // Parar TODOS os outros áudios antes da celebração
     this.stopAllAudioExceptCelebration();
 
@@ -2952,33 +2971,46 @@ class RevealExperience {
       this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
 
-      // CORREÇÃO: Estratégia diferente para mobile vs desktop
-      if (!this.isMobile) {
-        // DESKTOP: Comportamento original
-        const playPromise = this.celebrationMusic.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('✅ Música de celebração iniciada automaticamente (DESKTOP)');
-              // Aumentar volume gradualmente
-              let volume = 0;
-              const fadeIn = setInterval(() => {
-                volume += 0.05;
-                if (volume >= 0.7) {
-                  volume = 0.7;
-                  clearInterval(fadeIn);
-                }
-                this.celebrationMusic.volume = volume;
-              }, 100);
-            })
-            .catch((error) => {
-              console.log('❌ Autoplay bloqueado (DESKTOP):', error);
-            });
-        }
+      console.log(`🎵 Iniciando música de celebração - Platform: ${this.isMobile ? 'MOBILE' : 'DESKTOP'}`);
+
+      // CORREÇÃO: Tentar autoplay para ambas as plataformas, com fallback para mobile
+      const playPromise = this.celebrationMusic.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log(`✅ Música de celebração iniciada automaticamente (${this.isMobile ? 'MOBILE' : 'DESKTOP'})`);
+            // Aumentar volume gradualmente
+            let volume = 0;
+            const fadeIn = setInterval(() => {
+              volume += 0.05;
+              if (volume >= 0.7) {
+                volume = 0.7;
+                clearInterval(fadeIn);
+              }
+              this.celebrationMusic.volume = volume;
+            }, 100);
+          })
+          .catch((error) => {
+            console.log(`❌ Autoplay bloqueado (${this.isMobile ? 'MOBILE' : 'DESKTOP'}):`, error);
+            
+            if (this.isMobile) {
+              // MOBILE: Fallback para controle manual
+              console.log('📱 Música preparada para controle manual via botão');
+              this.celebrationMusic.volume = 0.7;
+            } else {
+              // DESKTOP: Tentar novamente após pequeno delay
+              setTimeout(() => {
+                this.celebrationMusic.volume = 0.7;
+                this.celebrationMusic.play()
+                  .then(() => console.log('✅ Segunda tentativa desktop bem-sucedida'))
+                  .catch(() => console.log('❌ Segunda tentativa desktop falhou'));
+              }, 500);
+            }
+          });
       } else {
-        // MOBILE: Apenas preparar, usuário controla via botão
-        console.log('📱 Música de celebração preparada para mobile - controle manual via botão');
-        this.celebrationMusic.volume = 0.7; // Volume padrão já definido
+        // Fallback se play() não retornar Promise
+        console.log('⚠️ Play não retornou Promise, definindo volume padrão');
+        this.celebrationMusic.volume = 0.7;
       }
     }
   }
@@ -2986,17 +3018,26 @@ class RevealExperience {
   stopAllAudioExceptCelebration() {
     console.log('Parando todos os áudios antes da celebração...');
 
-    // Parar batimentos cardíacos
+    // CORREÇÃO: Parar batimentos cardíacos de forma mais robusta
     if (this.soundGenerator) {
-      this.soundGenerator.stopHeartbeatLoop();
-      console.log('Batimentos cardíacos parados');
+      try {
+        this.soundGenerator.stopHeartbeatLoop();
+        // Verificação adicional para garantir que parou
+        if (this.soundGenerator.isHeartbeatPlaying) {
+          console.log('⚠️ Forçando parada do batimento cardíaco...');
+          this.soundGenerator.forceStopAllSounds();
+        }
+        console.log('✅ Batimentos cardíacos parados definitivamente');
+      } catch (error) {
+        console.log('❌ Erro ao parar batimento cardíaco:', error);
+      }
     }
 
     // Parar música do clímax
     if (this.climaxMusic) {
       this.climaxMusic.pause();
       this.climaxMusic.currentTime = 0;
-      console.log('Música do clímax parada');
+      console.log('✅ Música do clímax parada');
     }
 
     // Parar qualquer som sintético que possa estar tocando
@@ -3004,9 +3045,9 @@ class RevealExperience {
       try {
         // Parar todas as fontes de áudio ativas
         this.soundGenerator.stopAllSounds();
-        console.log('Sons sintéticos parados');
+        console.log('✅ Sons sintéticos parados');
       } catch (error) {
-        console.log('Erro ao parar sons sintéticos:', error);
+        console.log('❌ Erro ao parar sons sintéticos:', error);
       }
     }
 
@@ -3014,10 +3055,10 @@ class RevealExperience {
     if (this.celebrationMusic && !this.celebrationMusic.paused) {
       this.celebrationMusic.pause();
       this.celebrationMusic.currentTime = 0;
-      console.log('Música de celebração resetada');
+      console.log('✅ Música de celebração resetada');
     }
 
-    console.log('Todos os áudios anteriores foram parados para a celebração');
+    console.log('🎉 Todos os áudios anteriores foram parados para a celebração');
   }
 
   showAudioEnableButton() {
