@@ -142,62 +142,67 @@ class RevealExperience {
         await this.soundGenerator.initialize();
       }
 
-      // 2. Pré-autorizar música do clímax SEM reprodução audível
+      // 2. NOVA ABORDAGEM: Apenas preparar os áudios SEM tocar
       if (this.climaxMusic) {
-        // CORREÇÃO: Garantir volume ZERO e pausar imediatamente
+        // Apenas garantir que está carregado e pausado
         this.climaxMusic.volume = 0;
-        this.climaxMusic.muted = true; // Adicionar mute como proteção extra
-        const climaxPlay = this.climaxMusic.play();
-        if (climaxPlay) {
-          await climaxPlay
-            .then(() => {
-              // Parar imediatamente após autorização
-              this.climaxMusic.pause();
-              this.climaxMusic.currentTime = 0;
-              this.climaxMusic.muted = false; // Remover mute para uso futuro
-              console.log('✅ Música do clímax pré-autorizada SILENCIOSAMENTE');
-            })
-            .catch(() => console.log('❌ Falha ao pré-autorizar música do clímax'));
+        this.climaxMusic.muted = true;
+        this.climaxMusic.currentTime = 0;
+
+        // Tentar carregar o arquivo sem reproduzir
+        try {
+          this.climaxMusic.load(); // Recarregar para garantir que está pronto
+          console.log('✅ Música do clímax preparada SILENCIOSAMENTE');
+        } catch (e) {
+          console.log('❌ Falha ao preparar música do clímax:', e);
         }
+
+        // Garantir que está pausado e mudo
+        this.climaxMusic.pause();
+        this.climaxMusic.currentTime = 0;
+        this.climaxMusic.muted = false; // Remover mute mas manter pausado
       }
 
-      // 3. Pré-autorizar música de celebração SEM reprodução audível
+      // 3. NOVA ABORDAGEM: Apenas preparar música de celebração SEM tocar
       if (this.celebrationMusic) {
         this.celebrationMusic.volume = 0;
-        this.celebrationMusic.muted = true; // Adicionar mute como proteção extra
-        const celebrationPlay = this.celebrationMusic.play();
-        if (celebrationPlay) {
-          await celebrationPlay
-            .then(() => {
-              this.celebrationMusic.pause();
-              this.celebrationMusic.currentTime = 0;
-              this.celebrationMusic.muted = false; // Remover mute para uso futuro
-              console.log('✅ Música de celebração pré-autorizada SILENCIOSAMENTE');
-            })
-            .catch(() => console.log('❌ Falha ao pré-autorizar música de celebração'));
+        this.celebrationMusic.muted = true;
+        this.celebrationMusic.currentTime = 0;
+
+        try {
+          this.celebrationMusic.load(); // Recarregar para garantir que está pronto
+          console.log('✅ Música de celebração preparada SILENCIOSAMENTE');
+        } catch (e) {
+          console.log('❌ Falha ao preparar música de celebração:', e);
         }
+
+        // Garantir que está pausado e mudo
+        this.celebrationMusic.pause();
+        this.celebrationMusic.currentTime = 0;
+        this.celebrationMusic.muted = false; // Remover mute mas manter pausado
       }
 
-      // 4. Testar batimento cardíaco sintético
+      // 4. Desbloqueio do contexto de áudio usando uma abordagem mais suave
       if (this.soundGenerator && this.soundGenerator.audioContext) {
         try {
-          // Criar um som silencioso para desbloquear o contexto
+          // Em vez de play() nos áudios, usar apenas contexto sintético
           const oscillator = this.soundGenerator.audioContext.createOscillator();
           const gainNode = this.soundGenerator.audioContext.createGain();
           gainNode.gain.setValueAtTime(0, this.soundGenerator.audioContext.currentTime);
           oscillator.connect(gainNode);
           gainNode.connect(this.soundGenerator.audioContext.destination);
           oscillator.start();
-          oscillator.stop(this.soundGenerator.audioContext.currentTime + 0.1);
-          console.log('✅ Contexto de áudio sintético desbloqueado');
+          oscillator.stop(this.soundGenerator.audioContext.currentTime + 0.001); // Apenas 1ms
+          console.log('✅ Contexto de áudio desbloqueado silenciosamente');
         } catch (error) {
           console.log('❌ Erro ao desbloquear contexto sintético:', error);
         }
       }
 
+      // 5. Marcar áudios como "prontos" sem ter tocado
       this.allAudiosPreAuthorized = true;
       this.audioUnlocked = true;
-      console.log('🎉 TODOS os áudios pré-autorizados com sucesso!');
+      console.log('🎉 Áudios preparados e contexto desbloqueado SILENCIOSAMENTE!');
     } catch (error) {
       console.log('❌ Erro na pré-autorização:', error);
     }
@@ -218,7 +223,7 @@ class RevealExperience {
     setTimeout(() => {
       console.log('🕐 Iniciando monitoramento para áudio do clímax...');
       const climaxCheckInterval = setInterval(() => {
-        // Verificação rigorosa: fase buildup E áudios autorizados E ainda não tocando
+        // Verificação rigorosa: fase buildup E áudios preparados E ainda não tocando
         if (
           this.currentPhase === 'buildup' &&
           this.climaxMusic &&
@@ -226,16 +231,36 @@ class RevealExperience {
           this.climaxMusic.paused
         ) {
           console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
+
+          // NOVA ESTRATÉGIA: Tentar play direto, se falhar, desbloquear na hora
           this.climaxMusic.currentTime = 0;
           this.climaxMusic.volume = 0.8;
-          this.climaxMusic.muted = false; // Garantir que não está mudo
-          this.climaxMusic
-            .play()
-            .then(() => {
-              console.log('✅ Música do clímax auto-reproduzida na fase correta');
-              clearInterval(climaxCheckInterval); // Parar verificação após sucesso
-            })
-            .catch((err) => console.log('❌ Falha na auto-reprodução do clímax:', err));
+          this.climaxMusic.muted = false;
+
+          const playPromise = this.climaxMusic.play();
+          if (playPromise) {
+            playPromise
+              .then(() => {
+                console.log('✅ Música do clímax auto-reproduzida na fase correta');
+                clearInterval(climaxCheckInterval);
+              })
+              .catch(async (err) => {
+                console.log('❌ Falha na auto-reprodução do clímax, tentando desbloqueio:', err);
+                // Se falhou, tentar desbloqueio imediato com play+pause
+                try {
+                  this.climaxMusic.volume = 0;
+                  await this.climaxMusic.play();
+                  this.climaxMusic.pause();
+                  this.climaxMusic.currentTime = 0;
+                  this.climaxMusic.volume = 0.8;
+                  await this.climaxMusic.play();
+                  console.log('✅ Música do clímax desbloqueada e tocando');
+                  clearInterval(climaxCheckInterval);
+                } catch (e2) {
+                  console.log('❌ Falha total no desbloqueio do clímax:', e2);
+                }
+              });
+          }
         }
 
         // Parar verificação após a fase buildup
@@ -414,9 +439,11 @@ class RevealExperience {
       // Marcar o início da experiência
       this.experienceStartTime = Date.now();
 
-      // NO MOBILE: Pré-autorizar TODOS os áudios após este clique
+      // NO MOBILE: Apenas preparar os áudios sem tocar
       if (this.isMobile) {
         await this.preAuthorizeMobileAudio();
+        // AGUARDAR um momento para garantir que a preparação foi concluída
+        await new Promise((resolve) => setTimeout(resolve, 500));
         // Agendar reprodução automática dos áudios nos momentos corretos
         this.scheduleAutoAudioPlayback();
       }
@@ -664,32 +691,36 @@ class RevealExperience {
     // Parar áudio de batimento
     this.soundGenerator.stopHeartbeatLoop();
 
-    // CONTROLE PRECISO: Som de suspense (arquivo de áudio) só na fase buildup
-    if (this.climaxMusic) {
-      // Garantir que o áudio está parado antes de reproduzir
+    // CONTROLE PRECISO: Apenas preparar o áudio, deixar agendamento automático tocar
+    if (this.climaxMusic && !this.isMobile) {
+      // NO DESKTOP: Tocar imediatamente como sempre funcionou
       this.climaxMusic.pause();
       this.climaxMusic.currentTime = 0;
-      this.climaxMusic.volume = 0.8; // Garantir volume
+      this.climaxMusic.volume = 0.8;
 
       const playPromise = this.climaxMusic.play();
       if (playPromise) {
         playPromise
           .then(() => {
-            console.log('✅ Música do clímax iniciada com sucesso NA FASE BUILDUP');
+            console.log('✅ Música do clímax iniciada com sucesso NA FASE BUILDUP (DESKTOP)');
           })
           .catch((e) => {
-            console.log('❌ Erro ao tocar música do clímax:', e);
-            // Se falhar, tentar novamente após um pequeno delay
+            console.log('❌ Erro ao tocar música do clímax (DESKTOP):', e);
             setTimeout(() => {
               if (this.currentPhase === 'buildup') {
-                // Verificar se ainda estamos na fase correta
                 this.climaxMusic
                   .play()
-                  .catch(() => console.log('Segunda tentativa de clímax falhou'));
+                  .catch(() => console.log('Segunda tentativa de clímax falhou (DESKTOP)'));
               }
             }, 100);
           });
       }
+    } else if (this.climaxMusic && this.isMobile) {
+      // NO MOBILE: Apenas preparar, o agendamento automático vai tocar
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+      this.climaxMusic.volume = 0.8;
+      console.log('📱 Música do clímax preparada para mobile - agendamento automático vai tocar');
     }
 
     this.experienceScreen.innerHTML = `
