@@ -281,20 +281,21 @@ class RevealExperience {
       }, buildupTime - countdownTime + 5000); // Duração da mystery + buildup + 5s de margem
     }, countdownTime + 1000); // Começar 1 segundo APÓS o countdown terminar
 
-    // Agendar música de celebração
+    // Agendar música de celebração (APENAS para desktop ou se mobile não estiver usando agendamento)
     setTimeout(() => {
       if (
         this.currentPhase === 'celebration' &&
         this.celebrationMusic &&
-        this.allAudiosPreAuthorized
+        this.allAudiosPreAuthorized &&
+        !this.isMobile // CORREÇÃO: Apenas para desktop
       ) {
-        console.log('🎵 Auto-reproduzindo música de celebração...');
+        console.log('🎵 Auto-reproduzindo música de celebração (DESKTOP)...');
         this.celebrationMusic.currentTime = 0;
         this.celebrationMusic.volume = 0;
         this.celebrationMusic
           .play()
           .then(() => {
-            console.log('✅ Música de celebração auto-reproduzida');
+            console.log('✅ Música de celebração auto-reproduzida (DESKTOP)');
             // Fade in
             let volume = 0;
             const fadeIn = setInterval(() => {
@@ -306,7 +307,9 @@ class RevealExperience {
               this.celebrationMusic.volume = volume;
             }, 100);
           })
-          .catch((err) => console.log('❌ Falha na auto-reprodução da celebração:', err));
+          .catch((err) => console.log('❌ Falha na auto-reprodução da celebração (DESKTOP):', err));
+      } else if (this.isMobile) {
+        console.log('📱 Música de celebração no mobile será controlada pela startCelebrationPhase');
       }
     }, celebrationTime);
 
@@ -2860,17 +2863,14 @@ class RevealExperience {
       this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
 
-      // Nova estratégia: tentar autoplay mesmo no mobile se foi pré-autorizado
-      const shouldAttemptAutoplay = !this.isMobile || this.allAudiosPreAuthorized;
-
-      if (shouldAttemptAutoplay) {
-        // Tentar reproduzir automaticamente
+      // CORREÇÃO: Estratégia diferente para mobile vs desktop
+      if (!this.isMobile) {
+        // DESKTOP: Comportamento original
         const playPromise = this.celebrationMusic.play();
-
         if (playPromise !== undefined) {
           playPromise
             .then(() => {
-              console.log('✅ Música de celebração iniciada automaticamente');
+              console.log('✅ Música de celebração iniciada automaticamente (DESKTOP)');
               // Aumentar volume gradualmente
               let volume = 0;
               const fadeIn = setInterval(() => {
@@ -2883,23 +2883,13 @@ class RevealExperience {
               }, 100);
             })
             .catch((error) => {
-              console.log('❌ Autoplay bloqueado mesmo após pré-autorização:', error);
-              // Fallback: tentar novamente após pequeno delay
-              setTimeout(() => {
-                this.celebrationMusic
-                  .play()
-                  .then(() => {
-                    console.log('✅ Segunda tentativa de celebração bem-sucedida');
-                    this.celebrationMusic.volume = 0.7;
-                  })
-                  .catch(() =>
-                    console.log('❌ Segunda tentativa falhou - usuário deve controlar manualmente')
-                  );
-              }, 500);
+              console.log('❌ Autoplay bloqueado (DESKTOP):', error);
             });
         }
       } else {
-        console.log('Mobile sem pré-autorização - música será controlada manualmente');
+        // MOBILE: Apenas preparar, usuário controla via botão
+        console.log('📱 Música de celebração preparada para mobile - controle manual via botão');
+        this.celebrationMusic.volume = 0.7; // Volume padrão já definido
       }
     }
   }
