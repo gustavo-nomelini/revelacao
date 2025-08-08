@@ -828,18 +828,25 @@ class RevealExperience {
         }
         
         .menino-aura {
-          background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, transparent 70%);
-          box-shadow: 0 0 50px rgba(59, 130, 246, 0.5);
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
+          box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+          animation: meninoAuraWeak 3s ease-in-out infinite alternate;
         }
         
         .menina-aura {
-          background: radial-gradient(circle, rgba(236, 72, 153, 0.3) 0%, transparent 70%);
-          box-shadow: 0 0 50px rgba(236, 72, 153, 0.5);
+          background: radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, transparent 70%);
+          box-shadow: 0 0 60px rgba(236, 72, 153, 0.8);
+          animation: meninaAuraStrong 1.5s ease-in-out infinite alternate;
         }
         
-        @keyframes auraGlow {
-          from { opacity: 0.3; transform: scale(1); }
-          to { opacity: 0.8; transform: scale(1.1); }
+        @keyframes meninoAuraWeak {
+          from { opacity: 0.1; transform: scale(0.9); }
+          to { opacity: 0.3; transform: scale(1); }
+        }
+        
+        @keyframes meninaAuraStrong {
+          from { opacity: 0.6; transform: scale(1.1); }
+          to { opacity: 1; transform: scale(1.3); }
         }
         
         .versus-symbol {
@@ -869,21 +876,31 @@ class RevealExperience {
         .power-bar {
           height: 100%;
           border-radius: 4px;
-          animation: powerCharge 4s ease-in-out infinite;
+          transition: all 0.5s ease;
         }
         
         .menino-bar {
           background: linear-gradient(90deg, #3b82f6, #60a5fa);
+          width: 0%; /* Barra vazia para o menino */
+          animation: none; /* Sem animação para o menino */
         }
         
         .menina-bar {
           background: linear-gradient(90deg, #ec4899, #f472b6);
+          width: 100%; /* Barra cheia para a menina */
+          animation: meninaGlow 1.5s ease-in-out infinite; /* Animação de brilho */
+          box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
         }
         
-        @keyframes powerCharge {
-          0% { width: 0%; }
-          50% { width: 100%; }
-          100% { width: 0%; }
+        @keyframes meninaGlow {
+          0%, 100% { 
+            opacity: 0.8;
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+          }
+          50% { 
+            opacity: 1;
+            box-shadow: 0 0 30px rgba(236, 72, 153, 1);
+          }
         }
         
         .cosmic-spinner {
@@ -916,36 +933,48 @@ class RevealExperience {
           }
         }
         
-        /* Efeito de energia para a escolhida */
+        /* Efeito de energia para a escolhida - MELHORADO */
         .chosen-energy {
-          animation: chosenGlow 2s ease-in-out;
+          animation: chosenGlow 2s ease-in-out infinite;
         }
         
         @keyframes chosenGlow {
           0% { 
-            filter: brightness(1) saturate(1);
-            transform: scale(1);
+            filter: brightness(1.2) saturate(1.3) hue-rotate(0deg);
+            transform: scale(1.05);
           }
           50% { 
-            filter: brightness(1.5) saturate(1.5);
-            transform: scale(1.1);
+            filter: brightness(1.8) saturate(2) hue-rotate(10deg);
+            transform: scale(1.15);
           }
           100% { 
-            filter: brightness(2) saturate(2);
-            transform: scale(1.2);
+            filter: brightness(1.2) saturate(1.3) hue-rotate(0deg);
+            transform: scale(1.05);
           }
         }
         
+        .chosen-energy .menina-image {
+          box-shadow: 0 0 40px rgba(236, 72, 153, 1) !important;
+          border-color: #ff69b4 !important;
+          border-width: 4px !important;
+        }
+        
+        /* Efeito de fade para o oponente - MELHORADO */
         .fade-opponent {
-          animation: fadeOut 2s ease-in-out;
+          animation: fadeOut 1s ease-in-out forwards;
         }
         
         @keyframes fadeOut {
           to {
-            opacity: 0.2;
-            filter: grayscale(100%);
-            transform: scale(0.8);
+            opacity: 0.3;
+            filter: grayscale(100%) brightness(0.5);
+            transform: scale(0.9);
           }
+        }
+        
+        .fade-opponent .menino-image {
+          border-color: #6b7280 !important;
+          box-shadow: none !important;
         }
       </style>
     `;
@@ -959,12 +988,10 @@ class RevealExperience {
     // Vibração de duelo
     this.createDuelVibes();
 
-    // Após 4 segundos, mostrar quem ganhou
-    setTimeout(() => {
-      this.showDuelWinner();
-    }, 4000);
+    // SEQUÊNCIA COMPLETA DO DUELO com fase de carregamento inicial!
+    this.startDuelSequence();
 
-    // Transição para reveal após duração total
+    // Transição para reveal após duração total (12 segundos)
     setTimeout(() => {
       this.startRevealPhase();
     }, EXPERIENCE_CONFIG.timing.phases.duel);
@@ -973,21 +1000,29 @@ class RevealExperience {
   createEnergyEffects() {
     const container = document.getElementById('energyEffects');
 
-    // Criar partículas de energia
-    for (let i = 0; i < 25; i++) {
+    // Criar partículas de energia (mais partículas rosas para favorecer a menina)
+    for (let i = 0; i < 35; i++) {
       const particle = document.createElement('div');
       particle.className = 'absolute rounded-full energy-particle';
 
-      // Cores de energia
+      // Cores de energia - MAIS ROSAS para favorecer a menina
       const colors = [
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(236, 72, 153, 0.8)',
-        'rgba(255, 255, 255, 0.9)',
+        'rgba(59, 130, 246, 0.4)', // azul mais fraco
+        'rgba(236, 72, 153, 0.9)', // rosa forte
+        'rgba(255, 105, 180, 0.8)', // rosa médio
+        'rgba(255, 20, 147, 0.9)', // rosa vibrante
+        'rgba(255, 182, 193, 0.7)', // rosa claro
+        'rgba(255, 255, 255, 0.6)', // branco suave
       ];
-      particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
 
-      // Tamanho
-      const size = Math.random() * 8 + 4;
+      // 70% de chance de ser uma cor rosa/menina
+      const randomIndex =
+        Math.random() < 0.3 ? 0 : Math.floor(Math.random() * (colors.length - 1)) + 1;
+      particle.style.backgroundColor = colors[randomIndex];
+
+      // Tamanho (partículas rosas um pouco maiores)
+      const isRosa = randomIndex > 0;
+      const size = isRosa ? Math.random() * 10 + 6 : Math.random() * 6 + 3;
       particle.style.width = size + 'px';
       particle.style.height = size + 'px';
 
@@ -995,8 +1030,12 @@ class RevealExperience {
       particle.style.left = Math.random() * 100 + '%';
       particle.style.top = Math.random() * 100 + '%';
 
-      // Animação de energia
-      particle.style.animation = `energyFlow ${Math.random() * 3 + 2}s linear infinite`;
+      // Animação de energia (partículas rosas com animação diferente)
+      if (isRosa) {
+        particle.style.animation = `energyFlowMenina ${Math.random() * 2 + 2}s linear infinite`;
+      } else {
+        particle.style.animation = `energyFlowMenino ${Math.random() * 4 + 3}s linear infinite`;
+      }
       particle.style.animationDelay = Math.random() * 2 + 's';
 
       container.appendChild(particle);
@@ -1005,21 +1044,176 @@ class RevealExperience {
     // CSS para partículas de energia
     const style = document.createElement('style');
     style.textContent = `
-      @keyframes energyFlow {
+      @keyframes energyFlowMenina {
         0% {
           opacity: 0;
-          transform: translateY(100vh) rotate(0deg);
+          transform: translateY(100vh) translateX(-20px) rotate(0deg) scale(0.5);
         }
-        10% {
+        20% {
           opacity: 1;
+          transform: translateY(80vh) translateX(20px) rotate(90deg) scale(1);
         }
-        90% {
+        80% {
           opacity: 1;
+          transform: translateY(20vh) translateX(-10px) rotate(270deg) scale(1.2);
         }
         100% {
           opacity: 0;
-          transform: translateY(-100px) rotate(360deg);
+          transform: translateY(-100px) translateX(30px) rotate(360deg) scale(0.8);
         }
+      }
+      
+      @keyframes energyFlowMenino {
+        0% {
+          opacity: 0;
+          transform: translateY(100vh) rotate(0deg) scale(0.3);
+        }
+        30% {
+          opacity: 0.6;
+          transform: translateY(70vh) rotate(120deg) scale(0.8);
+        }
+        70% {
+          opacity: 0.4;
+          transform: translateY(30vh) rotate(240deg) scale(0.6);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100px) rotate(360deg) scale(0.2);
+        }
+      }
+      
+      /* Novas animações para o duelo dinâmico */
+      @keyframes meninoGlow {
+        0%, 100% { 
+          opacity: 0.8;
+          box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+          filter: brightness(1.2);
+        }
+        50% { 
+          opacity: 1;
+          box-shadow: 0 0 30px rgba(59, 130, 246, 1);
+          filter: brightness(1.8);
+        }
+      }
+      
+      @keyframes meninaVictory {
+        0%, 100% { 
+          transform: scale(1);
+        }
+        50% { 
+          transform: scale(1.05);
+        }
+      }
+      
+      @keyframes meninaEnergyFlow {
+        0% {
+          opacity: 0;
+          transform: translateY(100vh) translateX(-20px) rotate(0deg) scale(0.5);
+        }
+        20% {
+          opacity: 1;
+          transform: translateY(80vh) translateX(20px) rotate(90deg) scale(1);
+        }
+        80% {
+          opacity: 1;
+          transform: translateY(20vh) translateX(-10px) rotate(270deg) scale(1.2);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100px) translateX(30px) rotate(360deg) scale(0.8);
+        }
+      }
+      
+      @keyframes meninoEnergyFlow {
+        0% {
+          opacity: 0;
+          transform: translateY(100vh) rotate(0deg) scale(0.3);
+        }
+        30% {
+          opacity: 0.6;
+          transform: translateY(70vh) rotate(120deg) scale(0.8);
+        }
+        70% {
+          opacity: 0.4;
+          transform: translateY(30vh) rotate(240deg) scale(0.6);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-100px) rotate(360deg) scale(0.2);
+        }
+      }
+      
+      /* Animações para a fase de carregamento inicial */
+      @keyframes loadingPulse {
+        0%, 100% { 
+          opacity: 0.7;
+          transform: scale(1);
+        }
+        50% { 
+          opacity: 1;
+          transform: scale(1.02);
+        }
+      }
+      
+      .vs-spinner {
+        animation: vsSpinnerGlow 2s ease-in-out infinite;
+      }
+      
+      @keyframes vsSpinnerGlow {
+        0%, 100% { 
+          text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+          transform: scale(1);
+        }
+        50% { 
+          text-shadow: 0 0 40px rgba(255, 255, 255, 1), 0 0 60px rgba(138, 92, 246, 0.8);
+          transform: scale(1.1);
+        }
+      }
+      
+      .loading-dots span {
+        animation: loadingDot 1.5s ease-in-out infinite;
+      }
+      
+      .loading-dots span:nth-child(1) { animation-delay: 0s; }
+      .loading-dots span:nth-child(2) { animation-delay: 0.5s; }
+      .loading-dots span:nth-child(3) { animation-delay: 1s; }
+      
+      @keyframes loadingDot {
+        0%, 80%, 100% { 
+          opacity: 0.3;
+          transform: scale(1);
+        }
+        40% { 
+          opacity: 1;
+          transform: scale(1.5);
+        }
+      }
+      
+      .loading-bar-container {
+        width: 200px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 2px;
+        overflow: hidden;
+        margin: 0 auto;
+      }
+      
+      .loading-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #8b5cf6, #3b82f6, #ec4899, #10b981);
+        background-size: 200% 100%;
+        animation: loadingBarFill 3s ease-in-out forwards, loadingBarGradient 1.5s ease-in-out infinite;
+        width: 0%;
+      }
+      
+      @keyframes loadingBarFill {
+        from { width: 0%; }
+        to { width: 100%; }
+      }
+      
+      @keyframes loadingBarGradient {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
       }
     `;
     document.head.appendChild(style);
@@ -1036,31 +1230,242 @@ class RevealExperience {
     }
   }
 
-  showDuelWinner() {
-    // A menina sempre ganha! (porque é o reveal)
+  startDuelSequence() {
+    // ========== FASE 0: CARREGAMENTO INICIAL (0-3 segundos) ==========
+    console.log('🎭 FASE 0: Carregamento inicial do duelo...');
+
+    const versusContainer = document.querySelector('.versus-container');
+    const meninaSide = document.querySelector('.menina-side');
+    const meninoSide = document.querySelector('.menino-side');
+    const meninaBar = document.querySelector('.menina-bar');
+    const meninoBar = document.querySelector('.menino-bar');
+
+    if (!versusContainer) return;
+
+    // Manter ambos os lados neutros
+    if (meninaSide) meninaSide.classList.remove('chosen-energy', 'fade-opponent');
+    if (meninoSide) meninoSide.classList.remove('chosen-energy', 'fade-opponent');
+
+    // Barras em estado neutro/carregando
+    if (meninaBar) {
+      meninaBar.style.width = '50%';
+      meninaBar.style.animation = 'loadingPulse 1.5s ease-in-out infinite';
+      meninaBar.style.opacity = '0.7';
+    }
+    if (meninoBar) {
+      meninoBar.style.width = '50%';
+      meninoBar.style.animation = 'loadingPulse 1.5s ease-in-out infinite';
+      meninoBar.style.opacity = '0.7';
+    }
+
+    // Animação do VS com carregamento
+    versusContainer.innerHTML = `
+      <div class="versus-loading text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-8xl text-white font-bold">
+        <div class="vs-spinner">⚡ VS ⚡</div>
+        <div class="loading-dots text-base sm:text-lg md:text-xl mt-2">
+          <span>.</span><span>.</span><span>.</span>
+        </div>
+      </div>
+      <div class="loading-bar-container mt-4">
+        <div class="loading-bar"></div>
+      </div>
+    `;
+
+    // Vibração de início de carregamento
+    this.vibrate([100, 50, 100]);
+
+    // Vibração no meio do carregamento
+    setTimeout(() => {
+      this.vibrate([150, 75, 150]);
+    }, 1500);
+
+    // Após 3 segundos, iniciar a sequência dinâmica
+    setTimeout(() => {
+      this.startDynamicDominance();
+    }, 3000);
+  }
+
+  startDynamicDominance() {
     const meninaSide = document.querySelector('.menina-side');
     const meninoSide = document.querySelector('.menino-side');
     const versusContainer = document.querySelector('.versus-container');
+    const meninaBar = document.querySelector('.menina-bar');
+    const meninoBar = document.querySelector('.menino-bar');
 
-    if (meninaSide && meninoSide) {
-      // Menina ganha com efeito especial
-      meninaSide.classList.add('chosen-energy');
-      meninoSide.classList.add('fade-opponent');
+    if (!meninaSide || !meninoSide || !versusContainer) return;
 
-      // Atualizar o versus
+    // ========== FASE 1: MENINA DOMINA (3-6 segundos do duelo total) ==========
+    console.log('🎭 FASE 1: Menina começa dominando...');
+
+    // Menina brilha desde o início
+    meninaSide.classList.add('chosen-energy');
+    meninoSide.classList.add('fade-opponent');
+
+    // Barras iniciais - resetar opacity para estado normal
+    if (meninaBar) {
+      meninaBar.style.width = '85%';
+      meninaBar.style.animation = 'meninaGlow 1.5s ease-in-out infinite';
+      meninaBar.style.opacity = '1';
+    }
+    if (meninoBar) {
+      meninoBar.style.width = '15%';
+      meninoBar.style.animation = 'none';
+      meninoBar.style.opacity = '1';
+    }
+
+    // Primeiro indicador
+    setTimeout(() => {
       if (versusContainer) {
         versusContainer.innerHTML = `
-          <div class="winner-indicator text-4xl md:text-6xl text-pink-400 font-bold dancing-script">
-            👑 VITÓRIA! 👑
+          <div class="winner-indicator text-2xl sm:text-3xl md:text-4xl text-pink-400 font-bold dancing-script">
+            👑 MENINA DOMINANDO! 👑
+          </div>
+        `;
+      }
+    }, 1000); // Ajustado de 1500 para 1000
+
+    // Vibração de início
+    this.vibrate([200, 100, 200]);
+
+    // ========== FASE 2: VIRADA DO MENINO! (6-10 segundos do duelo total) ==========
+    setTimeout(() => {
+      console.log('🎭 FASE 2: VIRADA DRAMÁTICA! Menino assume o controle...');
+
+      // REMOVER efeitos da menina
+      meninaSide.classList.remove('chosen-energy');
+      meninaSide.classList.add('fade-opponent');
+
+      // ADICIONAR efeitos ao menino
+      meninoSide.classList.remove('fade-opponent');
+      meninoSide.classList.add('chosen-energy');
+
+      // Inverter as barras dramatically
+      if (meninaBar) {
+        meninaBar.style.width = '25%';
+        meninaBar.style.animation = 'none';
+        meninaBar.style.opacity = '0.5';
+      }
+      if (meninoBar) {
+        meninoBar.style.width = '75%';
+        meninoBar.style.animation = 'meninoGlow 1.2s ease-in-out infinite';
+        meninoBar.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.8)';
+      }
+
+      // Atualizar indicador
+      if (versusContainer) {
+        versusContainer.innerHTML = `
+          <div class="winner-indicator text-2xl sm:text-3xl md:text-4xl text-blue-400 font-bold dancing-script">
+            ⚡ MENINO REAGINDO! ⚡
           </div>
         `;
       }
 
-      // Vibração de vitória
-      setTimeout(() => {
-        this.vibrate([200, 100, 200, 100, 500]);
-      }, 500);
-    }
+      // Vibração de virada dramática
+      this.vibrate([100, 50, 100, 50, 300, 150, 300]);
+    }, 3000); // 3 segundos
+
+    // ========== FASE 3: VOLTA TRIUNFAL DA MENINA! (10-12 segundos do duelo total) ==========
+    setTimeout(() => {
+      console.log('🎭 FASE 3: REVIRAVOLTA FINAL! Menina retoma o controle definitivamente!');
+
+      // MENINA RETOMA O PODER COM MAIS FORÇA!
+      meninoSide.classList.remove('chosen-energy');
+      meninoSide.classList.add('fade-opponent');
+      meninaSide.classList.remove('fade-opponent');
+      meninaSide.classList.add('chosen-energy');
+
+      // Barras finais - menina domina completamente
+      if (meninaBar) {
+        meninaBar.style.width = '100%';
+        meninaBar.style.animation =
+          'meninaGlow 1s ease-in-out infinite, meninaVictory 2s ease-in-out infinite';
+        meninaBar.style.opacity = '1';
+        meninaBar.style.boxShadow = '0 0 30px rgba(236, 72, 153, 1)';
+      }
+      if (meninoBar) {
+        meninoBar.style.width = '0%';
+        meninoBar.style.animation = 'none';
+        meninoBar.style.boxShadow = 'none';
+      }
+
+      // Indicador de vitória final
+      if (versusContainer) {
+        versusContainer.innerHTML = `
+          <div class="winner-indicator text-2xl sm:text-3xl md:text-4xl text-pink-400 font-bold dancing-script animate-pulse">
+            🎀 MENINA VENCEU! 🎀
+          </div>
+        `;
+      }
+
+      // Vibração de vitória épica
+      this.vibrate([300, 100, 300, 100, 500, 200, 500]);
+
+      // Som extra de triunfo
+      this.soundGenerator.generateSuspenseSound();
+    }, 7000); // Ajustado de 8000 para 7000 (7s após início da fase 1 = 10s do duelo total)
+
+    // ========== EFEITOS VISUAIS EXTRAS ==========
+    // Adicionar partículas durante toda a sequência
+    this.createDynamicEnergyEffects();
+  }
+
+  createDynamicEnergyEffects() {
+    const energyContainer = document.getElementById('energyEffects');
+    if (!energyContainer) return;
+
+    // Função para criar partículas específicas de cada fase
+    const createPhaseParticles = (color, side, intensity) => {
+      for (let i = 0; i < intensity; i++) {
+        setTimeout(() => {
+          const particle = document.createElement('div');
+          particle.className = `energy-particle ${side}`;
+          particle.style.cssText = `
+            position: absolute;
+            width: ${Math.random() * 8 + 4}px;
+            height: ${Math.random() * 8 + 4}px;
+            background: ${color};
+            border-radius: 50%;
+            pointer-events: none;
+            animation: ${side}EnergyFlow ${3 + Math.random() * 2}s linear infinite;
+            left: ${side === 'menina' ? '70%' : '30%'};
+            top: 90%;
+            opacity: 0.8;
+            box-shadow: 0 0 10px ${color};
+          `;
+          energyContainer.appendChild(particle);
+
+          // Remover após animação
+          setTimeout(() => {
+            if (particle.parentNode) {
+              particle.parentNode.removeChild(particle);
+            }
+          }, 5000);
+        }, i * 100);
+      }
+    };
+
+    // Fase 1: Partículas rosa (menina) - inicia após carregamento
+    setTimeout(() => {
+      createPhaseParticles('#ec4899', 'menina', 8);
+    }, 0); // Imediatamente quando a função é chamada (já após os 3s de carregamento)
+
+    // Fase 2: Partículas azuis (menino)
+    setTimeout(() => {
+      createPhaseParticles('#3b82f6', 'menino', 10);
+    }, 3000); // 3s após início da fase 1 (6s do duelo total)
+
+    // Fase 3: Explosão de partículas rosa (vitória menina)
+    setTimeout(() => {
+      createPhaseParticles('#ec4899', 'menina', 15);
+      // Partículas extras para vitória
+      setTimeout(() => createPhaseParticles('#f472b6', 'menina', 12), 500);
+      setTimeout(() => createPhaseParticles('#ec4899', 'menina', 10), 1000);
+    }, 7000); // 7s após início da fase 1 (10s do duelo total)
+  }
+
+  showDuelWinner() {
+    // Esta função agora é chamada automaticamente no startMeninaAdvantage
+    // Mantida para compatibilidade, mas pode ser removida futuramente
   }
 
   startRevealPhase() {
