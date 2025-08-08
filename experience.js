@@ -36,6 +36,7 @@ class RevealExperience {
     this.audioUnlocked = false;
     this.experienceStartTime = null;
     this.celebrationMusicAllowed = false;
+    this.allAudiosPreAuthorized = false;
 
     this.initializeElements();
     this.bindEvents();
@@ -92,6 +93,129 @@ class RevealExperience {
     document.addEventListener('click', unlockAudio, { once: true });
   }
 
+  async preAuthorizeMobileAudio() {
+    if (this.allAudiosPreAuthorized) return;
+
+    console.log('🔓 Pré-autorizando todos os áudios para mobile...');
+
+    try {
+      // 1. Inicializar contexto de áudio sintético
+      if (this.soundGenerator && !this.soundGenerator.isInitialized) {
+        await this.soundGenerator.initialize();
+      }
+
+      // 2. Pré-autorizar música do clímax
+      if (this.climaxMusic) {
+        this.climaxMusic.volume = 0;
+        const climaxPlay = this.climaxMusic.play();
+        if (climaxPlay) {
+          await climaxPlay
+            .then(() => {
+              this.climaxMusic.pause();
+              this.climaxMusic.currentTime = 0;
+              console.log('✅ Música do clímax pré-autorizada');
+            })
+            .catch(() => console.log('❌ Falha ao pré-autorizar música do clímax'));
+        }
+      }
+
+      // 3. Pré-autorizar música de celebração
+      if (this.celebrationMusic) {
+        this.celebrationMusic.volume = 0;
+        const celebrationPlay = this.celebrationMusic.play();
+        if (celebrationPlay) {
+          await celebrationPlay
+            .then(() => {
+              this.celebrationMusic.pause();
+              this.celebrationMusic.currentTime = 0;
+              console.log('✅ Música de celebração pré-autorizada');
+            })
+            .catch(() => console.log('❌ Falha ao pré-autorizar música de celebração'));
+        }
+      }
+
+      // 4. Testar batimento cardíaco sintético
+      if (this.soundGenerator && this.soundGenerator.audioContext) {
+        try {
+          // Criar um som silencioso para desbloquear o contexto
+          const oscillator = this.soundGenerator.audioContext.createOscillator();
+          const gainNode = this.soundGenerator.audioContext.createGain();
+          gainNode.gain.setValueAtTime(0, this.soundGenerator.audioContext.currentTime);
+          oscillator.connect(gainNode);
+          gainNode.connect(this.soundGenerator.audioContext.destination);
+          oscillator.start();
+          oscillator.stop(this.soundGenerator.audioContext.currentTime + 0.1);
+          console.log('✅ Contexto de áudio sintético desbloqueado');
+        } catch (error) {
+          console.log('❌ Erro ao desbloquear contexto sintético:', error);
+        }
+      }
+
+      this.allAudiosPreAuthorized = true;
+      this.audioUnlocked = true;
+      console.log('🎉 TODOS os áudios pré-autorizados com sucesso!');
+    } catch (error) {
+      console.log('❌ Erro na pré-autorização:', error);
+    }
+  }
+
+  scheduleAutoAudioPlayback() {
+    console.log('📅 Agendando reprodução automática dos áudios...');
+
+    // Calcular os momentos exatos para cada áudio
+    const countdownTime = EXPERIENCE_CONFIG.timing.countdown * 1000;
+    const mysteryTime = countdownTime + EXPERIENCE_CONFIG.timing.phases.mystery;
+    const buildupTime = mysteryTime + EXPERIENCE_CONFIG.timing.phases.buildup;
+    const celebrationTime =
+      buildupTime + EXPERIENCE_CONFIG.timing.phases.duel + EXPERIENCE_CONFIG.timing.phases.reveal;
+
+    // Agendar música do clímax (durante buildup)
+    setTimeout(() => {
+      if (this.currentPhase === 'buildup' && this.climaxMusic && this.allAudiosPreAuthorized) {
+        console.log('🎵 Auto-reproduzindo música do clímax...');
+        this.climaxMusic.currentTime = 0;
+        this.climaxMusic.volume = 0.8;
+        this.climaxMusic
+          .play()
+          .then(() => console.log('✅ Música do clímax auto-reproduzida'))
+          .catch((err) => console.log('❌ Falha na auto-reprodução do clímax:', err));
+      }
+    }, buildupTime - 1000); // 1 segundo antes da fase buildup para garantir
+
+    // Agendar música de celebração
+    setTimeout(() => {
+      if (
+        this.currentPhase === 'celebration' &&
+        this.celebrationMusic &&
+        this.allAudiosPreAuthorized
+      ) {
+        console.log('🎵 Auto-reproduzindo música de celebração...');
+        this.celebrationMusic.currentTime = 0;
+        this.celebrationMusic.volume = 0;
+        this.celebrationMusic
+          .play()
+          .then(() => {
+            console.log('✅ Música de celebração auto-reproduzida');
+            // Fade in
+            let volume = 0;
+            const fadeIn = setInterval(() => {
+              volume += 0.05;
+              if (volume >= 0.7) {
+                volume = 0.7;
+                clearInterval(fadeIn);
+              }
+              this.celebrationMusic.volume = volume;
+            }, 100);
+          })
+          .catch((err) => console.log('❌ Falha na auto-reprodução da celebração:', err));
+      }
+    }, celebrationTime);
+
+    console.log(`📅 Áudios agendados:
+      - Clímax: ${buildupTime / 1000}s
+      - Celebração: ${celebrationTime / 1000}s`);
+  }
+
   initializeElements() {
     this.landingScreen = document.getElementById('landingScreen');
     this.experienceScreen = document.getElementById('experienceScreen');
@@ -135,8 +259,24 @@ class RevealExperience {
 
   loadClimaxMusic() {
     this.climaxMusic = new Audio('./Climax 1⧸2 (Suspense) sound effects [NQRbIrEHY3M].mp3');
-    this.climaxMusic.preload = 'auto';
-    this.climaxMusic.volume = 0.8;
+
+    // Configurações otimizadas para mobile
+    if (this.isMobile) {
+      this.climaxMusic.preload = 'metadata';
+      this.climaxMusic.volume = 0.9; // Volume um pouco mais alto no mobile
+    } else {
+      this.climaxMusic.preload = 'auto';
+      this.climaxMusic.volume = 0.8;
+    }
+
+    // Adicionar listeners para feedback
+    this.climaxMusic.addEventListener('canplaythrough', () => {
+      console.log('Música do clímax carregada e pronta');
+    });
+
+    this.climaxMusic.addEventListener('error', (e) => {
+      console.error('Erro ao carregar música do clímax:', e);
+    });
   }
 
   vibrate(pattern = [100, 50, 100]) {
@@ -149,6 +289,13 @@ class RevealExperience {
     try {
       // Marcar o início da experiência
       this.experienceStartTime = Date.now();
+
+      // NO MOBILE: Pré-autorizar TODOS os áudios após este clique
+      if (this.isMobile) {
+        await this.preAuthorizeMobileAudio();
+        // Agendar reprodução automática dos áudios nos momentos corretos
+        this.scheduleAutoAudioPlayback();
+      }
 
       // Calcular quando a música de celebração poderá tocar
       // Tempo total até celebration = countdown + mystery + buildup + duel + reveal
@@ -383,7 +530,24 @@ class RevealExperience {
     // Som de suspense (arquivo de áudio)
     if (this.climaxMusic) {
       this.climaxMusic.currentTime = 0;
-      this.climaxMusic.play().catch((e) => console.log('Erro ao tocar música do clímax:', e));
+      this.climaxMusic.volume = 0.8; // Garantir volume
+
+      const playPromise = this.climaxMusic.play();
+      if (playPromise) {
+        playPromise
+          .then(() => {
+            console.log('✅ Música do clímax iniciada com sucesso');
+          })
+          .catch((e) => {
+            console.log('❌ Erro ao tocar música do clímax:', e);
+            // Se falhar, tentar novamente após um pequeno delay
+            setTimeout(() => {
+              this.climaxMusic
+                .play()
+                .catch(() => console.log('Segunda tentativa de clímax falhou'));
+            }, 100);
+          });
+      }
     }
 
     this.experienceScreen.innerHTML = `
@@ -1547,36 +1711,46 @@ class RevealExperience {
       this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
 
-      // Estratégia diferente para mobile vs desktop
-      if (this.isMobile) {
-        // No mobile, sempre mostrar controle manual primeiro
-        console.log('Mobile detectado - música será controlada manualmente');
-        // Não tentar autoplay no mobile, deixar o usuário controlar
-        return;
-      }
+      // Nova estratégia: tentar autoplay mesmo no mobile se foi pré-autorizado
+      const shouldAttemptAutoplay = !this.isMobile || this.allAudiosPreAuthorized;
 
-      // Tentar reproduzir a música (desktop)
-      const playPromise = this.celebrationMusic.play();
+      if (shouldAttemptAutoplay) {
+        // Tentar reproduzir automaticamente
+        const playPromise = this.celebrationMusic.play();
 
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log('Música de celebração iniciada automaticamente');
-            // Aumentar volume gradualmente
-            let volume = 0;
-            const fadeIn = setInterval(() => {
-              volume += 0.05;
-              if (volume >= 0.7) {
-                volume = 0.7;
-                clearInterval(fadeIn);
-              }
-              this.celebrationMusic.volume = volume;
-            }, 100);
-          })
-          .catch((error) => {
-            console.log('Autoplay bloqueado:', error);
-            // Não mostrar botão extra se já temos controles na interface
-          });
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('✅ Música de celebração iniciada automaticamente');
+              // Aumentar volume gradualmente
+              let volume = 0;
+              const fadeIn = setInterval(() => {
+                volume += 0.05;
+                if (volume >= 0.7) {
+                  volume = 0.7;
+                  clearInterval(fadeIn);
+                }
+                this.celebrationMusic.volume = volume;
+              }, 100);
+            })
+            .catch((error) => {
+              console.log('❌ Autoplay bloqueado mesmo após pré-autorização:', error);
+              // Fallback: tentar novamente após pequeno delay
+              setTimeout(() => {
+                this.celebrationMusic
+                  .play()
+                  .then(() => {
+                    console.log('✅ Segunda tentativa de celebração bem-sucedida');
+                    this.celebrationMusic.volume = 0.7;
+                  })
+                  .catch(() =>
+                    console.log('❌ Segunda tentativa falhou - usuário deve controlar manualmente')
+                  );
+              }, 500);
+            });
+        }
+      } else {
+        console.log('Mobile sem pré-autorização - música será controlada manualmente');
       }
     }
   }
