@@ -6,11 +6,11 @@ const EXPERIENCE_CONFIG = {
     celebration: true,
   },
   timing: {
-    countdown: 10,
+    countdown: 2,
     phases: {
       mystery: 14000,
       buildup: 17000,
-      duel: 6000, // Nova fase: Duelo de Possibilidades
+      duel: 12000, // Nova fase: Duelo de Possibilidades
       reveal: 8000, // Aumentado de 3000 para 8000ms (8 segundos)
       celebration: 20000,
     },
