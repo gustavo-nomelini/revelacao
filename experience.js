@@ -37,6 +37,7 @@ class RevealExperience {
     this.experienceStartTime = null;
     this.celebrationMusicAllowed = false;
     this.allAudiosPreAuthorized = false;
+    this.experienceStarted = false;
 
     this.initializeElements();
     this.bindEvents();
@@ -57,9 +58,19 @@ class RevealExperience {
   }
 
   prepareMobileAudio() {
-    // Adicionar listeners para desbloqueio de áudio no mobile
-    const unlockAudio = () => {
-      if (!this.audioUnlocked) {
+    // Função para desbloqueio de áudio mais controlada
+    const unlockAudio = (event) => {
+      // Verificar se o clique foi no botão de entrada ou em um elemento válido
+      const target = event.target;
+      const isValidTarget =
+        target.id === 'enterButton' ||
+        target.closest('#enterButton') ||
+        target.closest('button') ||
+        target.closest('.music-button') ||
+        target.closest('.share-button') ||
+        target.closest('.repeat-button');
+
+      if (!this.audioUnlocked && isValidTarget) {
         // Tentar reproduzir um som silencioso para desbloquear o contexto de áudio
         if (this.celebrationMusic) {
           const originalVolume = this.celebrationMusic.volume;
@@ -87,10 +98,10 @@ class RevealExperience {
       }
     };
 
-    // Adicionar listeners para primeira interação
-    document.addEventListener('touchstart', unlockAudio, { once: true });
-    document.addEventListener('touchend', unlockAudio, { once: true });
-    document.addEventListener('click', unlockAudio, { once: true });
+    // Adicionar listeners para primeira interação válida
+    document.addEventListener('touchstart', unlockAudio, { passive: true });
+    document.addEventListener('touchend', unlockAudio, { passive: true });
+    document.addEventListener('click', unlockAudio);
   }
 
   async preAuthorizeMobileAudio() {
@@ -225,7 +236,36 @@ class RevealExperience {
   }
 
   bindEvents() {
-    this.enterButton.addEventListener('click', () => this.startExperience());
+    // Evento específico para o botão de entrada
+    this.enterButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      this.startExperience();
+    });
+
+    // Prevenir cliques acidentais em outras áreas da tela inicial
+    this.landingScreen.addEventListener('click', (event) => {
+      // Só permitir cliques no botão de entrada
+      if (!event.target.closest('#enterButton')) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Feedback visual para cliques fora do botão
+        const button = this.enterButton;
+        button.style.transform = 'scale(1.05)';
+        button.style.boxShadow = '0 0 20px rgba(255, 105, 180, 0.8)';
+
+        setTimeout(() => {
+          button.style.transform = '';
+          button.style.boxShadow = '';
+        }, 200);
+
+        // Vibração de feedback no mobile
+        if (this.isMobile) {
+          this.vibrate([50]);
+        }
+      }
+    });
 
     // Detectar se é mobile para vibração
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -286,6 +326,14 @@ class RevealExperience {
   }
 
   async startExperience() {
+    // Prevenir múltiplas execuções
+    if (this.experienceStarted) {
+      console.log('Experiência já foi iniciada, ignorando clique duplicado');
+      return;
+    }
+
+    this.experienceStarted = true;
+
     try {
       // Marcar o início da experiência
       this.experienceStartTime = Date.now();
@@ -1193,79 +1241,86 @@ class RevealExperience {
                 <div id="balloons" class="absolute inset-0"></div>
                 
                 <!-- Conteúdo principal -->
-                <div class="relative z-10 flex flex-col items-center justify-center min-h-full text-center px-2 sm:px-4 py-4">
-                    <div class="celebration-content max-w-sm sm:max-w-lg md:max-w-4xl mx-auto w-full">
+                <div class="relative z-10 flex flex-col items-center justify-start min-h-full text-center px-1 sm:px-2 md:px-4 py-2 sm:py-4 overflow-y-auto">
+                    <div class="celebration-content max-w-xs sm:max-w-sm md:max-w-lg lg:max-w-4xl mx-auto w-full">
                         <!-- Título de celebração -->
-                        <h1 class="dancing-script text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold text-white mb-4 sm:mb-6 md:mb-8 celebration-title">
+                        <h1 class="dancing-script text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-7xl font-bold text-white mb-2 sm:mb-3 md:mb-4 lg:mb-6 xl:mb-8 celebration-title leading-tight">
                             Bem-vinda, Celina ! 👑
                         </h1>
                         
                         <!-- Mensagem especial -->
-                        <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8">
-                            <p class="poppins text-base sm:text-lg md:text-xl lg:text-2xl text-white mb-4 sm:mb-6">
+                        <div class="celebration-message bg-white/30 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-3xl p-2 sm:p-3 md:p-4 lg:p-6 xl:p-8 mb-2 sm:mb-3 md:mb-4 lg:mb-6 xl:mb-8">
+                            <p class="poppins text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white mb-2 sm:mb-3 md:mb-4 lg:mb-6">
                                 Uma nova estrela nasceu em nossos corações ! ⭐
                             </p>
                             
-                            <div class="celebration-details grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-white">
-                                <div class="detail-card bg-pink-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">💖 Amor Infinito</h3>
-                                    <p class="poppins text-xs sm:text-sm">Preparados para amar incondicionalmente</p>
+                            <!-- Grid de detalhes mais compacto -->
+                            <div class="celebration-details grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 lg:gap-6 text-white">
+                                <div class="detail-card bg-pink-500/30 rounded-md sm:rounded-lg md:rounded-xl p-2 sm:p-3 md:p-4">
+                                    <h3 class="dancing-script text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-0.5 sm:mb-1 md:mb-2">💖 Amor</h3>
+                                    <p class="poppins text-xs sm:text-xs md:text-sm leading-tight">Preparados para amar incondicionalmente</p>
                                 </div>
                                 
-                                <div class="detail-card bg-purple-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">🌸 Doçura Pura</h3>
-                                    <p class="poppins text-xs sm:text-sm">Ela trará toda a doçura do mundo</p>
+                                <div class="detail-card bg-purple-500/30 rounded-md sm:rounded-lg md:rounded-xl p-2 sm:p-3 md:p-4">
+                                    <h3 class="dancing-script text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-0.5 sm:mb-1 md:mb-2">🌸 Doçura</h3>
+                                    <p class="poppins text-xs sm:text-xs md:text-sm leading-tight">Ela trará toda a doçura do mundo</p>
                                 </div>
                                 
-                                <div class="detail-card bg-blue-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">✨ Magia Diária</h3>
-                                    <p class="poppins text-xs sm:text-sm">Cada dia será uma nova aventura</p>
+                                <div class="detail-card bg-blue-500/30 rounded-md sm:rounded-lg md:rounded-xl p-2 sm:p-3 md:p-4">
+                                    <h3 class="dancing-script text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-0.5 sm:mb-1 md:mb-2">✨ Magia</h3>
+                                    <p class="poppins text-xs sm:text-xs md:text-sm leading-tight">Cada dia será uma nova aventura</p>
                                 </div>
                                 
-                                <div class="detail-card bg-green-500/30 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                                    <h3 class="dancing-script text-lg sm:text-xl md:text-2xl mb-1 sm:mb-2">🦋 Liberdade</h3>
-                                    <p class="poppins text-xs sm:text-sm">Para voar alto e sonhar grande</p>
+                                <div class="detail-card bg-green-500/30 rounded-md sm:rounded-lg md:rounded-xl p-2 sm:p-3 md:p-4">
+                                    <h3 class="dancing-script text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl mb-0.5 sm:mb-1 md:mb-2">🦋 Liberdade</h3>
+                                    <p class="poppins text-xs sm:text-xs md:text-sm leading-tight">Para voar alto e sonhar grande</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Botão de compartilhamento -->
-                        <button id="shareButton" class="share-button bg-white text-pink-600 px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg md:text-xl font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 mb-4 sm:mb-6">
-                            Compartilhar a Alegria! 📱
-                        </button>
-                        
-                        <!-- Controles de música -->
-                        <div class="music-controls flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mb-4 sm:mb-6 md:mb-8">
-                            <!-- Indicador de status da música -->
-                            <div id="musicStatus" class="music-status text-white/80 text-xs sm:text-sm mb-2 sm:mb-0 text-center">
-                                ${
-                                  this.isMobile
-                                    ? '🎵 Toque no botão para ouvir nossa música especial!'
-                                    : '🎵 Música da celebração'
-                                }
+                        <!-- Container de botões compacto -->
+                        <div class="actions-container space-y-2 sm:space-y-3 md:space-y-4">
+                            <!-- Botão de compartilhamento -->
+                            <button id="shareButton" class="share-button bg-white text-pink-600 px-3 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4 rounded-full text-sm sm:text-base md:text-lg lg:text-xl font-bold hover:bg-pink-50 transition-all duration-300 transform hover:scale-105 w-full sm:w-auto max-w-xs sm:max-w-sm">
+                                📱 Compartilhar a Alegria!
+                            </button>
+                            
+                            <!-- Controles de música compactos -->
+                            <div class="music-controls bg-black/20 backdrop-blur-sm rounded-xl p-2 sm:p-3 border border-white/10">
+                                <!-- Status da música -->
+                                <div id="musicStatus" class="music-status text-white/90 text-xs sm:text-sm mb-2 text-center font-medium">
+                                    ${
+                                      this.isMobile
+                                        ? '🎵 Toque para ouvir nossa música!'
+                                        : '🎵 Música da celebração'
+                                    }
+                                </div>
+                                
+                                <!-- Botão de música e controles -->
+                                <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+                                    <button id="musicToggle" class="music-button bg-gradient-to-r from-pink-500/80 to-purple-600/80 backdrop-blur-sm text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:from-pink-600/80 hover:to-purple-700/80 transition-all text-xs sm:text-sm font-semibold border border-white/20 shadow-lg min-h-[40px]">
+                                        🎵 Tocar Música
+                                    </button>
+                                    <div class="volume-control flex items-center gap-2">
+                                        <span class="text-white text-xs">🔊</span>
+                                        <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider w-12 sm:w-16 md:w-20">
+                                    </div>
+                                </div>
                             </div>
                             
-                            <button id="musicToggle" class="music-button bg-gradient-to-r from-pink-500/80 to-purple-600/80 backdrop-blur-sm text-white px-4 sm:px-5 py-2 sm:py-3 rounded-full hover:from-pink-600/80 hover:to-purple-700/80 transition-all text-sm sm:text-base font-semibold border border-white/20 shadow-lg">
-                                🎵 Tocar Música
-                            </button>
-                            <div class="volume-control flex items-center gap-2">
-                                <span class="text-white text-xs sm:text-sm">🔊</span>
-                                <input type="range" id="volumeSlider" min="0" max="100" value="70" class="volume-slider w-16 sm:w-20">
+                            <!-- Botão de repetir -->
+                            <div class="repeat-section">
+                                <button id="repeatButton" class="repeat-button bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 rounded-full text-sm sm:text-base md:text-lg font-bold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-2xl w-full sm:w-auto max-w-xs sm:max-w-sm min-h-[44px]">
+                                    🔄 Repetir a Magia ✨
+                                </button>
+                                <p class="poppins text-xs sm:text-sm text-white/60 mt-1 sm:mt-2">
+                                    Quer viver essa emoção novamente?
+                                </p>
                             </div>
-                        </div>
-                        
-                        <!-- Botão para repetir experiência -->
-                        <div class="repeat-section">
-                            <button id="repeatButton" class="repeat-button bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 sm:px-6 md:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base md:text-lg font-bold hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-2xl mb-2 sm:mb-3">
-                                🔄 Repetir a Magia ✨
-                            </button>
-                            <p class="poppins text-xs sm:text-sm text-white/60">
-                                Quer viver essa emoção novamente?
-                            </p>
                         </div>
                         
                         <!-- Agradecimento -->
-                        <p class="poppins text-sm sm:text-base md:text-lg text-white/80 mt-4 sm:mt-6 md:mt-8">
+                        <p class="poppins text-xs sm:text-sm md:text-base lg:text-lg text-white/80 mt-3 sm:mt-4 md:mt-6 lg:mt-8 px-2">
                             Obrigado por compartilhar este momento mágico conosco! 💕
                         </p>
                     </div>
@@ -1348,52 +1403,234 @@ class RevealExperience {
                     }
                 }
                 
-                /* Responsividade móvel adicional */
+                /* Responsividade móvel adicional - MELHORADA */
                 @media (max-width: 640px) {
                     .celebration-content {
-                        padding: 0 0.5rem;
+                        padding: 0 0.25rem;
+                        max-width: 100%;
                     }
                     
-                    .celebration-details {
-                        gap: 0.75rem;
-                    }
-                    
-                    .detail-card {
-                        padding: 0.75rem;
+                    .celebration-title {
+                        line-height: 1.1;
+                        margin-bottom: 0.75rem;
+                        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
                     }
                     
                     .celebration-message {
-                        margin-bottom: 1rem;
-                        padding: 1rem;
+                        margin-bottom: 0.75rem;
+                        padding: 0.75rem;
+                        backdrop-filter: blur(8px);
+                    }
+                    
+                    .celebration-details {
+                        gap: 0.5rem;
+                    }
+                    
+                    .detail-card {
+                        padding: 0.5rem;
+                        min-height: auto;
+                    }
+                    
+                    .detail-card h3 {
+                        margin-bottom: 0.25rem;
+                        line-height: 1.2;
+                    }
+                    
+                    .detail-card p {
+                        line-height: 1.3;
+                        margin: 0;
+                    }
+                    
+                    .actions-container {
+                        margin-top: 0.75rem;
                     }
                     
                     .share-button, .repeat-button {
                         width: 100%;
                         max-width: 280px;
+                        margin: 0 auto;
+                        font-size: 0.875rem;
+                        padding: 0.75rem 1rem;
                     }
                     
                     .music-controls {
-                        flex-direction: column;
-                        gap: 0.75rem;
+                        padding: 0.75rem;
+                        margin: 0.5rem 0;
+                    }
+                    
+                    .music-button {
+                        width: 100%;
+                        max-width: 200px;
+                        padding: 0.625rem 1rem;
+                        font-size: 0.75rem;
                     }
                     
                     .volume-control {
                         width: 100%;
                         justify-content: center;
+                        margin-top: 0.5rem;
+                    }
+                    
+                    .volume-slider {
+                        width: 80px;
+                    }
+                    
+                    /* Melhor scroll em telas pequenas */
+                    .celebration-phase {
+                        overflow-y: auto;
+                        -webkit-overflow-scrolling: touch;
                     }
                 }
                 
                 @media (max-width: 480px) {
+                    .celebration-content {
+                        padding: 0 0.125rem;
+                    }
+                    
                     .celebration-title {
-                        line-height: 1.1;
+                        font-size: 1.5rem;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .celebration-message p {
+                        font-size: 0.875rem;
+                        margin-bottom: 0.75rem;
+                    }
+                    
+                    .detail-card {
+                        padding: 0.375rem;
                     }
                     
                     .detail-card h3 {
-                        font-size: 1rem;
+                        font-size: 0.875rem;
                     }
                     
                     .detail-card p {
-                        font-size: 0.75rem;
+                        font-size: 0.7rem;
+                        line-height: 1.2;
+                    }
+                    
+                    .share-button, .repeat-button {
+                        font-size: 0.8rem;
+                        padding: 0.625rem 0.875rem;
+                        max-width: 260px;
+                    }
+                    
+                    .music-button {
+                        font-size: 0.7rem;
+                        padding: 0.5rem 0.75rem;
+                    }
+                    
+                    .volume-slider {
+                        width: 60px;
+                    }
+                }
+                
+                /* Otimizações para altura de tela pequena */
+                @media (max-height: 700px) {
+                    .celebration-content {
+                        padding-top: 0.5rem;
+                        padding-bottom: 1rem;
+                    }
+                    
+                    .celebration-title {
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .celebration-message {
+                        margin-bottom: 0.5rem;
+                        padding: 0.5rem;
+                    }
+                    
+                    .actions-container {
+                        space-y: 0.375rem;
+                    }
+                    
+                    .detail-card {
+                        padding: 0.375rem;
+                    }
+                }
+                
+                @media (max-height: 600px) {
+                    .celebration-title {
+                        font-size: 1.25rem;
+                        margin-bottom: 0.375rem;
+                    }
+                    
+                    .celebration-message p {
+                        font-size: 0.8rem;
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .detail-card h3 {
+                        font-size: 0.8rem;
+                        margin-bottom: 0.125rem;
+                    }
+                    
+                    .detail-card p {
+                        font-size: 0.65rem;
+                    }
+                }
+                
+                /* Melhorias de toque e acessibilidade */
+                @media (hover: none) and (pointer: coarse) {
+                    .share-button:hover, .repeat-button:hover, .music-button:hover {
+                        transform: none;
+                    }
+                    
+                    .share-button:active, .repeat-button:active, .music-button:active {
+                        transform: scale(0.98);
+                    }
+                    
+                    /* Melhor feedback visual em dispositivos touch */
+                    .detail-card {
+                        transition: background-color 0.2s ease;
+                    }
+                    
+                    .detail-card:active {
+                        background-color: rgba(255, 255, 255, 0.15);
+                    }
+                }
+                
+                /* Otimizações específicas para iPhone */
+                @media screen and (max-device-width: 414px) {
+                    .celebration-phase {
+                        min-height: -webkit-fill-available;
+                    }
+                    
+                    .celebration-content {
+                        min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+                        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+                    }
+                }
+                
+                /* Correções para orientação landscape em mobile */
+                @media screen and (max-height: 500px) and (orientation: landscape) {
+                    .celebration-content {
+                        padding-top: 0.5rem;
+                        padding-bottom: 0.5rem;
+                    }
+                    
+                    .celebration-title {
+                        font-size: 1.25rem;
+                        margin-bottom: 0.375rem;
+                    }
+                    
+                    .celebration-message {
+                        margin-bottom: 0.5rem;
+                        padding: 0.5rem;
+                    }
+                    
+                    .details-grid {
+                        gap: 0.5rem;
+                    }
+                    
+                    .detail-card {
+                        padding: 0.375rem;
+                    }
+                    
+                    .actions-container > div {
+                        margin-bottom: 0.375rem;
                     }
                 }
             </style>
@@ -1692,6 +1929,12 @@ class RevealExperience {
   restartExperience() {
     // Vibração de confirmação
     this.vibrate([100, 50, 100, 50, 200]);
+
+    // Reset das variáveis antes do reload
+    this.experienceStarted = false;
+    this.audioUnlocked = false;
+    this.allAudiosPreAuthorized = false;
+    this.celebrationMusicAllowed = false;
 
     // Pequeno delay para sentir a vibração antes do refresh
     setTimeout(() => {
