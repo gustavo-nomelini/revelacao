@@ -34,6 +34,8 @@ class RevealExperience {
     this.climaxMusic = null;
     this.isMobile = this.detectMobile();
     this.audioUnlocked = false;
+    this.experienceStartTime = null;
+    this.celebrationMusicAllowed = false;
 
     this.initializeElements();
     this.bindEvents();
@@ -145,6 +147,36 @@ class RevealExperience {
 
   async startExperience() {
     try {
+      // Marcar o início da experiência
+      this.experienceStartTime = Date.now();
+
+      // Calcular quando a música de celebração poderá tocar
+      // Tempo total até celebration = countdown + mystery + buildup + duel + reveal
+      const totalTimeUntilCelebration =
+        EXPERIENCE_CONFIG.timing.countdown * 1000 +
+        EXPERIENCE_CONFIG.timing.phases.mystery +
+        EXPERIENCE_CONFIG.timing.phases.buildup +
+        EXPERIENCE_CONFIG.timing.phases.duel +
+        EXPERIENCE_CONFIG.timing.phases.reveal;
+
+      console.log(`Timing da experiência:
+        - Countdown: ${EXPERIENCE_CONFIG.timing.countdown}s
+        - Mystery: ${EXPERIENCE_CONFIG.timing.phases.mystery / 1000}s
+        - Buildup: ${EXPERIENCE_CONFIG.timing.phases.buildup / 1000}s  
+        - Duel: ${EXPERIENCE_CONFIG.timing.phases.duel / 1000}s
+        - Reveal: ${EXPERIENCE_CONFIG.timing.phases.reveal / 1000}s
+        - Total até celebração: ${totalTimeUntilCelebration / 1000}s`);
+
+      // Permitir música apenas após o tempo total (com margem de segurança)
+      setTimeout(() => {
+        this.celebrationMusicAllowed = true;
+        console.log(
+          '🎵 Música de celebração LIBERADA após',
+          totalTimeUntilCelebration / 1000,
+          'segundos'
+        );
+      }, totalTimeUntilCelebration);
+
       // Habilitar áudio
       await this.initializeAudio();
 
@@ -976,8 +1008,17 @@ class RevealExperience {
   startCelebrationPhase() {
     this.currentPhase = 'celebration';
 
-    // Iniciar música de celebração
-    this.playCelebrationMusic();
+    // Parar TODOS os outros áudios antes da celebração
+    this.stopAllAudioExceptCelebration();
+
+    // Forçar permissão da música (caso esteja atrasada)
+    this.celebrationMusicAllowed = true;
+
+    // Aguardar um momento maior para garantir que os áudios pararam completamente
+    setTimeout(() => {
+      // Só então iniciar a música de celebração
+      this.playCelebrationMusic();
+    }, 1000); // Delay de 1 segundo para garantir que outros áudios pararam
 
     this.experienceScreen.innerHTML = `
             <div class="celebration-phase relative h-full overflow-hidden">
@@ -1495,6 +1536,12 @@ class RevealExperience {
     }, 300);
   }
   playCelebrationMusic() {
+    // Verificar se a música está permitida (baseado no timing da experiência)
+    if (!this.celebrationMusicAllowed) {
+      console.log('Música de celebração ainda não permitida - aguardando timing correto');
+      return;
+    }
+
     if (this.celebrationMusic) {
       // Reset audio to beginning
       this.celebrationMusic.currentTime = 0;
@@ -1532,6 +1579,43 @@ class RevealExperience {
           });
       }
     }
+  }
+
+  stopAllAudioExceptCelebration() {
+    console.log('Parando todos os áudios antes da celebração...');
+
+    // Parar batimentos cardíacos
+    if (this.soundGenerator) {
+      this.soundGenerator.stopHeartbeatLoop();
+      console.log('Batimentos cardíacos parados');
+    }
+
+    // Parar música do clímax
+    if (this.climaxMusic) {
+      this.climaxMusic.pause();
+      this.climaxMusic.currentTime = 0;
+      console.log('Música do clímax parada');
+    }
+
+    // Parar qualquer som sintético que possa estar tocando
+    if (this.soundGenerator && this.soundGenerator.audioContext) {
+      try {
+        // Parar todas as fontes de áudio ativas
+        this.soundGenerator.stopAllSounds();
+        console.log('Sons sintéticos parados');
+      } catch (error) {
+        console.log('Erro ao parar sons sintéticos:', error);
+      }
+    }
+
+    // Pausar qualquer música de celebração que possa estar tocando prematuramente
+    if (this.celebrationMusic && !this.celebrationMusic.paused) {
+      this.celebrationMusic.pause();
+      this.celebrationMusic.currentTime = 0;
+      console.log('Música de celebração resetada');
+    }
+
+    console.log('Todos os áudios anteriores foram parados para a celebração');
   }
 
   showAudioEnableButton() {

@@ -180,6 +180,23 @@ class SoundGenerator {
       this.heartbeatInterval = null;
     }
   }
+
+  stopAllSounds() {
+    // Parar loop de batimentos
+    this.stopHeartbeatLoop();
+
+    // Se houver contexto de áudio, suspender temporariamente para parar todos os sons
+    if (this.audioContext && this.audioContext.state === 'running') {
+      try {
+        // Criar um novo contexto ou limpar o atual
+        this.audioContext.suspend().then(() => {
+          this.audioContext.resume();
+        });
+      } catch (error) {
+        console.log('Erro ao parar sons:', error);
+      }
+    }
+  }
 }
 
 // Tornar disponível globalmente
