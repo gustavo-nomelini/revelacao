@@ -239,9 +239,9 @@ class RevealExperience {
           this.currentPhase === 'buildup' &&
           this.climaxMusic &&
           this.allAudiosPreAuthorized &&
-          this.climaxMusic.paused
+          this.climaxMusic.paused // Só tentar se ainda estiver pausado
         ) {
-          console.log('🎵 Auto-reproduzindo música do clímax na fase buildup...');
+          console.log('🎵 Agendamento automático: tentando música do clímax na fase buildup...');
 
           // CORREÇÃO MOBILE: Verificar estado do AudioContext antes de tocar
           if (
@@ -262,11 +262,14 @@ class RevealExperience {
           if (playPromise) {
             playPromise
               .then(() => {
-                console.log('✅ Música do clímax auto-reproduzida na fase correta');
+                console.log('✅ Música do clímax auto-reproduzida via agendamento automático');
                 clearInterval(climaxCheckInterval);
               })
               .catch(async (err) => {
-                console.log('❌ Falha na auto-reprodução do clímax, tentando desbloqueio:', err);
+                console.log(
+                  '❌ Falha na auto-reprodução do clímax via agendamento, tentando desbloqueio:',
+                  err
+                );
                 // Se falhou, tentar desbloqueio imediato com play+pause
                 try {
                   // Primeiro, garantir que o AudioContext está ativo
@@ -284,13 +287,21 @@ class RevealExperience {
                   this.climaxMusic.currentTime = 0;
                   this.climaxMusic.volume = 0.8;
                   await this.climaxMusic.play();
-                  console.log('✅ Música do clímax desbloqueada e tocando');
+                  console.log('✅ Música do clímax desbloqueada via agendamento automático');
                   clearInterval(climaxCheckInterval);
                 } catch (e2) {
-                  console.log('❌ Falha total no desbloqueio do clímax:', e2);
+                  console.log('❌ Falha total no desbloqueio via agendamento:', e2);
                 }
               });
           }
+        } else if (
+          this.currentPhase === 'buildup' &&
+          this.climaxMusic &&
+          !this.climaxMusic.paused
+        ) {
+          // Música já está tocando, agendamento pode parar
+          console.log('✅ Música do clímax já está tocando, parando agendamento automático');
+          clearInterval(climaxCheckInterval);
         } // Parar verificação após a fase buildup
         if (
           this.currentPhase !== 'buildup' &&
@@ -783,36 +794,75 @@ class RevealExperience {
     // Parar áudio de batimento
     this.soundGenerator.stopHeartbeatLoop();
 
-    // CONTROLE PRECISO: Apenas preparar o áudio, deixar agendamento automático tocar
-    if (this.climaxMusic && !this.isMobile) {
-      // NO DESKTOP: Tocar imediatamente como sempre funcionou
+    // CONTROLE PRECISO: Tocar música do clímax na fase buildup para AMBAS as plataformas
+    if (this.climaxMusic) {
       this.climaxMusic.pause();
       this.climaxMusic.currentTime = 0;
       this.climaxMusic.volume = 0.8;
+
+      console.log(
+        `🎵 Tentando tocar música do clímax na fase buildup (${
+          this.isMobile ? 'MOBILE' : 'DESKTOP'
+        })`
+      );
 
       const playPromise = this.climaxMusic.play();
       if (playPromise) {
         playPromise
           .then(() => {
-            console.log('✅ Música do clímax iniciada com sucesso NA FASE BUILDUP (DESKTOP)');
+            console.log(
+              `✅ Música do clímax iniciada com sucesso NA FASE BUILDUP (${
+                this.isMobile ? 'MOBILE' : 'DESKTOP'
+              })`
+            );
           })
-          .catch((e) => {
-            console.log('❌ Erro ao tocar música do clímax (DESKTOP):', e);
-            setTimeout(() => {
-              if (this.currentPhase === 'buildup') {
-                this.climaxMusic
-                  .play()
-                  .catch(() => console.log('Segunda tentativa de clímax falhou (DESKTOP)'));
+          .catch(async (e) => {
+            console.log(
+              `❌ Erro ao tocar música do clímax (${this.isMobile ? 'MOBILE' : 'DESKTOP'}):`,
+              e
+            );
+
+            if (this.isMobile) {
+              // MOBILE: Tentar desbloqueio mais agressivo
+              try {
+                console.log('📱 Tentando desbloqueio de contexto mobile para clímax...');
+
+                // Verificar e retomar AudioContext se necessário
+                if (
+                  this.soundGenerator &&
+                  this.soundGenerator.audioContext &&
+                  this.soundGenerator.audioContext.state === 'suspended'
+                ) {
+                  await this.soundGenerator.audioContext.resume();
+                  console.log('✅ AudioContext retomado para clímax mobile');
+                }
+
+                // Tentar play silencioso primeiro para desbloqueio
+                this.climaxMusic.volume = 0;
+                await this.climaxMusic.play();
+                this.climaxMusic.pause();
+                this.climaxMusic.currentTime = 0;
+
+                // Agora tentar play real
+                this.climaxMusic.volume = 0.8;
+                await this.climaxMusic.play();
+                console.log('✅ Música do clímax desbloqueada e tocando (MOBILE)');
+              } catch (e2) {
+                console.log('❌ Falha total no desbloqueio mobile do clímax:', e2);
+                console.log('📱 Agendamento automático tentará tocar o clímax...');
               }
-            }, 100);
+            } else {
+              // DESKTOP: Segunda tentativa simples
+              setTimeout(() => {
+                if (this.currentPhase === 'buildup') {
+                  this.climaxMusic
+                    .play()
+                    .catch(() => console.log('Segunda tentativa de clímax falhou (DESKTOP)'));
+                }
+              }, 100);
+            }
           });
       }
-    } else if (this.climaxMusic && this.isMobile) {
-      // NO MOBILE: Apenas preparar, o agendamento automático vai tocar
-      this.climaxMusic.pause();
-      this.climaxMusic.currentTime = 0;
-      this.climaxMusic.volume = 0.8;
-      console.log('📱 Música do clímax preparada para mobile - agendamento automático vai tocar');
     }
 
     this.experienceScreen.innerHTML = `
