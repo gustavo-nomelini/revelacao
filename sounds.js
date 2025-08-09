@@ -3,48 +3,21 @@ class SoundGenerator {
   constructor() {
     this.audioContext = null;
     this.isInitialized = false;
-    this.heartbeatInterval = null;
-    this.isHeartbeatPlaying = false;
-    this.activeOscillators = new Set();
   }
 
   async initialize() {
     if (this.isInitialized) return;
 
     try {
-      // Criar contexto de áudio com compatibilidade para WebKit
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-      // Tentar retomar o contexto se estiver suspenso
-      if (this.audioContext.state === 'suspended') {
-        await this.audioContext.resume();
-      }
-
       this.isInitialized = true;
-      console.log('✅ AudioContext inicializado:', this.audioContext.state);
     } catch (error) {
-      console.log('❌ Audio context não suportado:', error);
-    }
-  }
-
-  async ensureAudioContextRunning() {
-    if (!this.audioContext) {
-      await this.initialize();
-    }
-
-    if (this.audioContext?.state === 'suspended') {
-      try {
-        await this.audioContext.resume();
-        console.log('✅ AudioContext retomado');
-      } catch (error) {
-        console.log('❌ Erro ao retomar AudioContext:', error);
-      }
+      console.log('Audio context não suportado:', error);
     }
   }
 
   // Gerar batimento cardíaco sintético
-  async generateHeartbeat() {
-    await this.ensureAudioContextRunning();
+  generateHeartbeat() {
     if (!this.audioContext) return;
 
     const now = this.audioContext.currentTime;
@@ -58,48 +31,35 @@ class SoundGenerator {
   createHeartbeatSound(startTime, frequency, duration) {
     if (!this.audioContext) return;
 
-    try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      const filter = this.audioContext.createBiquadFilter();
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    const filter = this.audioContext.createBiquadFilter();
 
-      // Adicionar à lista de osciladores ativos
-      this.activeOscillators.add(oscillator);
+    // Configurar filtro para som mais realista
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(200, startTime);
 
-      // Configurar filtro para som mais realista
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(200, startTime);
+    // Configurar oscilador
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
 
-      // Configurar oscilador
-      oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(frequency, startTime);
+    // Envelope do som
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      // Envelope do som - volume mais baixo para mobile
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    // Conectar nós
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
 
-      // Conectar nós
-      oscillator.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-
-      // Limpar da lista quando terminar
-      oscillator.onended = () => {
-        this.activeOscillators.delete(oscillator);
-      };
-
-      // Iniciar e parar
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    } catch (error) {
-      console.log('❌ Erro ao criar som de batimento:', error);
-    }
+    // Iniciar e parar
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   }
 
   // Som de suspense
-  async generateSuspenseSound() {
-    await this.ensureAudioContextRunning();
+  generateSuspenseSound() {
     if (!this.audioContext) return;
 
     const now = this.audioContext.currentTime;
@@ -115,45 +75,32 @@ class SoundGenerator {
   createSuspenseTone(startTime, frequency, duration) {
     if (!this.audioContext) return;
 
-    try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
-      const filter = this.audioContext.createBiquadFilter();
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
+    const filter = this.audioContext.createBiquadFilter();
 
-      // Adicionar à lista de osciladores ativos
-      this.activeOscillators.add(oscillator);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(150, startTime);
 
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(150, startTime);
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    oscillator.frequency.linearRampToValueAtTime(frequency * 0.8, startTime + duration);
 
-      oscillator.type = 'triangle';
-      oscillator.frequency.setValueAtTime(frequency, startTime);
-      oscillator.frequency.linearRampToValueAtTime(frequency * 0.8, startTime + duration);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0.1, startTime + duration - 0.1);
+    gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
 
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.1); // Volume mais baixo
-      gainNode.gain.linearRampToValueAtTime(0.08, startTime + duration - 0.1);
-      gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+    oscillator.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
 
-      oscillator.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-
-      // Limpar da lista quando terminar
-      oscillator.onended = () => {
-        this.activeOscillators.delete(oscillator);
-      };
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    } catch (error) {
-      console.log('❌ Erro ao criar som de suspense:', error);
-    }
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   }
 
   // Som de celebração
-  async generateCelebrationSound() {
-    await this.ensureAudioContextRunning();
+  generateCelebrationSound() {
     if (!this.audioContext) return;
 
     const now = this.audioContext.currentTime;
@@ -178,110 +125,77 @@ class SoundGenerator {
   createCelebrationNote(startTime, frequency, duration) {
     if (!this.audioContext) return;
 
-    try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
 
-      // Adicionar à lista de osciladores ativos
-      this.activeOscillators.add(oscillator);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
 
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(frequency, startTime);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.05); // Volume mais baixo
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
 
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-
-      // Limpar da lista quando terminar
-      oscillator.onended = () => {
-        this.activeOscillators.delete(oscillator);
-      };
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    } catch (error) {
-      console.log('❌ Erro ao criar nota de celebração:', error);
-    }
+    oscillator.start(startTime);
+    oscillator.stop(startTime + duration);
   }
 
   createSparkleSound(startTime) {
     if (!this.audioContext) return;
 
-    try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
+    const oscillator = this.audioContext.createOscillator();
+    const gainNode = this.audioContext.createGain();
 
-      // Adicionar à lista de osciladores ativos
-      this.activeOscillators.add(oscillator);
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(800 + Math.random() * 400, startTime);
 
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800 + Math.random() * 400, startTime);
+    gainNode.gain.setValueAtTime(0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.1, startTime + 0.01);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1);
 
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.08, startTime + 0.01); // Volume mais baixo
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1);
+    oscillator.connect(gainNode);
+    gainNode.connect(this.audioContext.destination);
 
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
-
-      // Limpar da lista quando terminar
-      oscillator.onended = () => {
-        this.activeOscillators.delete(oscillator);
-      };
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + 0.1);
-    } catch (error) {
-      console.log('❌ Erro ao criar som de brilho:', error);
-    }
+    oscillator.start(startTime);
+    oscillator.stop(startTime + 0.1);
   }
 
   // Iniciar loop de batimento cardíaco
-  async startHeartbeatLoop() {
+  startHeartbeatLoop() {
     if (!this.audioContext) return;
 
-    this.isHeartbeatPlaying = true;
-    await this.generateHeartbeat();
+    this.generateHeartbeat();
 
     // Repetir a cada ~1.2 segundos (como um batimento real)
-    this.heartbeatInterval = setInterval(async () => {
-      if (this.isHeartbeatPlaying) {
-        await this.generateHeartbeat();
-      }
+    this.heartbeatInterval = setInterval(() => {
+      this.generateHeartbeat();
     }, 1200);
   }
 
   stopHeartbeatLoop() {
-    this.isHeartbeatPlaying = false;
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
   }
 
-  forceStopAllSounds() {
-    // Parar todos os osciladores ativos
-    this.activeOscillators.forEach((oscillator) => {
-      try {
-        oscillator.stop();
-      } catch (error) {
-        // Ignora erros se o oscilador já parou
-      }
-    });
-    this.activeOscillators.clear();
-  }
-
   stopAllSounds() {
     // Parar loop de batimentos
     this.stopHeartbeatLoop();
 
-    // Parar todos os osciladores ativos
-    this.forceStopAllSounds();
-
-    console.log('✅ Todos os sons sintéticos foram parados');
+    // Se houver contexto de áudio, suspender temporariamente para parar todos os sons
+    if (this.audioContext && this.audioContext.state === 'running') {
+      try {
+        // Criar um novo contexto ou limpar o atual
+        this.audioContext.suspend().then(() => {
+          this.audioContext.resume();
+        });
+      } catch (error) {
+        console.log('Erro ao parar sons:', error);
+      }
+    }
   }
 }
 

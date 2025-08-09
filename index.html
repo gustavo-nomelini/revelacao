@@ -2,13 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0"
-    />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Revelação do Bebê 💛</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="sounds.js"></script>
@@ -207,8 +201,6 @@
         <button
           id="enterButton"
           class="mystery-button poppins bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full text-xl font-semibold border-2 border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
-          style="pointer-events: auto; z-index: 100; position: relative"
-          onclick="window.startExperienceManual && window.startExperienceManual()"
         >
           <span id="buttonText">Entrar no Mistério</span>
           <span class="ml-2">✨</span>
@@ -221,7 +213,7 @@
       </div>
 
       <!-- Audio de batimento cardíaco -->
-      <audio id="heartbeatAudio" loop preload="auto" playsinline webkit-playsinline>
+      <audio id="heartbeatAudio" loop preload="auto">
         <source
           src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsF"
           type="audio/wav"
@@ -244,43 +236,6 @@
     <script src="experience.js"></script>
 
     <script>
-      // Script de debug/fallback
-      window.addEventListener('load', () => {
-        console.log('🌐 Página totalmente carregada');
-
-        // Verificar se botão existe
-        const button = document.getElementById('enterButton');
-        console.log('🔍 Botão encontrado:', !!button);
-
-        if (button) {
-          // Adicionar listener direto como fallback
-          button.addEventListener('click', function (e) {
-            console.log('🖱️ Clique direto detectado!');
-
-            // Tentar via função global primeiro
-            if (window.startExperienceManual) {
-              console.log('✅ Usando função global');
-              window.startExperienceManual();
-            } else if (window.revelationExperience) {
-              console.log('✅ Usando instância global');
-              window.revelationExperience.startExperience();
-            } else {
-              console.log('⚠️ Nenhuma instância encontrada, aguardando...');
-              // Aguardar um pouco e tentar novamente
-              setTimeout(() => {
-                if (window.revelationExperience) {
-                  window.revelationExperience.startExperience();
-                } else {
-                  console.log('❌ Instância ainda não disponível após timeout');
-                }
-              }, 1000);
-            }
-          });
-
-          console.log('✅ Listener de fallback adicionado ao botão');
-        }
-      });
-
       // Função para criar partículas da landing page
       function createParticles() {
         const particlesContainer = document.getElementById('particles');
@@ -326,30 +281,6 @@
       document.addEventListener('gestureend', function (e) {
         e.preventDefault();
       });
-
-      // Prevenir zoom no mobile
-      document.addEventListener(
-        'touchmove',
-        function (e) {
-          if (e.scale !== 1) {
-            e.preventDefault();
-          }
-        },
-        { passive: false }
-      );
-
-      // Melhorar performance de áudio no mobile
-      if (
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      ) {
-        // Otimizações específicas para mobile
-        const audioElements = document.querySelectorAll('audio');
-        audioElements.forEach((audio) => {
-          audio.preload = 'auto';
-          audio.setAttribute('playsinline', 'true');
-          audio.setAttribute('webkit-playsinline', 'true');
-        });
-      }
     </script>
   </body>
 </html>
