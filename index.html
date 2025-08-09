@@ -2,7 +2,10 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>Revelação do Bebê 💛</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="sounds.js"></script>
@@ -213,7 +216,7 @@
       </div>
 
       <!-- Audio de batimento cardíaco -->
-      <audio id="heartbeatAudio" loop preload="auto">
+      <audio id="heartbeatAudio" loop preload="auto" playsinline webkit-playsinline>
         <source
           src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmMaCSuG1fHNeSsF"
           type="audio/wav"
@@ -281,6 +284,24 @@
       document.addEventListener('gestureend', function (e) {
         e.preventDefault();
       });
+
+      // Prevenir zoom no mobile
+      document.addEventListener('touchmove', function (e) {
+        if (e.scale !== 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // Melhorar performance de áudio no mobile
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // Otimizações específicas para mobile
+        const audioElements = document.querySelectorAll('audio');
+        audioElements.forEach(audio => {
+          audio.preload = 'auto';
+          audio.setAttribute('playsinline', 'true');
+          audio.setAttribute('webkit-playsinline', 'true');
+        });
+      }
     </script>
   </body>
 </html>
