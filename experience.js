@@ -795,21 +795,24 @@ class RevealExperience {
       // Configurar reprodução automática de áudios
       this.scheduleAutoAudioPlayback();
 
-      // Calcular quando a música de celebração deverá tocar (baseado no tempo EXATO)
+      // Calcular quando a música de celebração deverá tocar (SINCRONIZADO com a tela)
+      // A tela de celebração aparece DEPOIS do período de reveal, então ajustamos o timing
       const totalTimeUntilCelebration =
         EXPERIENCE_CONFIG.timing.countdown * 1000 +
         EXPERIENCE_CONFIG.timing.phases.mystery +
         EXPERIENCE_CONFIG.timing.phases.buildup +
         EXPERIENCE_CONFIG.timing.phases.duel +
-        EXPERIENCE_CONFIG.timing.phases.reveal;
+        EXPERIENCE_CONFIG.timing.phases.reveal + // Tempo até o reveal terminar
+        EXPERIENCE_CONFIG.timing.phases.reveal; // + tempo do próprio reveal para sincronizar com a tela
 
-      console.log(`⏰ Timing da experiência calculado:
+      console.log(`⏰ Timing CORRIGIDO da experiência:
         - Countdown: ${EXPERIENCE_CONFIG.timing.countdown}s
         - Mystery: ${EXPERIENCE_CONFIG.timing.phases.mystery / 1000}s
         - Buildup: ${EXPERIENCE_CONFIG.timing.phases.buildup / 1000}s  
         - Duel: ${EXPERIENCE_CONFIG.timing.phases.duel / 1000}s
         - Reveal: ${EXPERIENCE_CONFIG.timing.phases.reveal / 1000}s
-        - 🎵 MÚSICA CELEBRAÇÃO EM: ${totalTimeUntilCelebration / 1000}s`);
+        - Transição p/ celebração: ${EXPERIENCE_CONFIG.timing.phases.reveal / 1000}s
+        - 🎵 MÚSICA CELEBRAÇÃO (SINCRONIZADA): ${totalTimeUntilCelebration / 1000}s`);
 
       // Agendar música de celebração baseada no timing EXATO
       setTimeout(() => {
