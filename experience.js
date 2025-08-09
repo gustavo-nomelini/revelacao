@@ -377,6 +377,23 @@ class RevealExperience {
 
     console.log('🎉 Iniciando reprodução da música de celebração...');
 
+    // Para mobile, tentar primeiro um desbloqueio específico
+    if (this.isMobile && !this.audioUnlocked) {
+      console.log('📱 Mobile detectado sem áudio desbloqueado - fazendo desbloqueio específico');
+      try {
+        this.celebrationMusic.muted = true;
+        this.celebrationMusic.volume = 0;
+        await this.celebrationMusic.play();
+        this.celebrationMusic.pause();
+        this.celebrationMusic.currentTime = 0;
+        this.celebrationMusic.muted = false;
+        this.audioUnlocked = true;
+        console.log('✅ Áudio desbloqueado especificamente para celebração');
+      } catch (unlockError) {
+        console.log('⚠️ Não foi possível desbloquear automaticamente:', unlockError);
+      }
+    }
+
     try {
       // Forçar parada e reset
       this.celebrationMusic.pause();
@@ -420,34 +437,34 @@ class RevealExperience {
     } catch (error) {
       console.log('❌ Erro ao reproduzir música de celebração:', error);
 
-      // Retry para ambas as plataformas
-      try {
-        console.log('🔄 Tentativa adicional de reprodução...');
-        // Tentar desbloqueio silencioso
-        this.celebrationMusic.volume = 0;
-        await this.celebrationMusic.play();
-        this.celebrationMusic.pause();
-        this.celebrationMusic.currentTime = 0;
-        this.celebrationMusic.volume = 0;
-        await this.celebrationMusic.play();
+      // Retry específico para mobile
+      if (this.isMobile) {
+        console.log('� Tentativa de recuperação para mobile...');
+        this.showManualPlayButtonMobile();
+      } else {
+        // Retry para desktop
+        try {
+          console.log('🔄 Tentativa adicional de reprodução para desktop...');
+          this.celebrationMusic.volume = 0;
+          await this.celebrationMusic.play();
 
-        // Fade in após desbloqueio
-        let volume = 0;
-        const targetVolume = this.isMobile ? 0.8 : 0.7;
-        const fadeIn = setInterval(() => {
-          volume += 0.05;
-          if (volume >= targetVolume) {
-            volume = targetVolume;
-            clearInterval(fadeIn);
-          }
-          this.celebrationMusic.volume = volume;
-        }, 100);
+          // Fade in após retry
+          let volume = 0;
+          const targetVolume = 0.7;
+          const fadeIn = setInterval(() => {
+            volume += 0.05;
+            if (volume >= targetVolume) {
+              volume = targetVolume;
+              clearInterval(fadeIn);
+            }
+            this.celebrationMusic.volume = volume;
+          }, 100);
 
-        console.log('✅ Música de celebração desbloqueada e reproduzindo!');
-      } catch (e2) {
-        console.log('❌ Falha completa na reprodução da celebração:', e2);
-        // Mostrar botão manual como último recurso
-        this.showManualPlayButton();
+          console.log('✅ Música de celebração reproduzindo após retry!');
+        } catch (e2) {
+          console.log('❌ Falha completa na reprodução da celebração:', e2);
+          this.showManualPlayButton();
+        }
       }
     }
   }
@@ -487,6 +504,69 @@ class RevealExperience {
     };
 
     document.body.appendChild(manualButton);
+  }
+
+  showManualPlayButtonMobile() {
+    console.log('📱 Mostrando botão manual otimizado para mobile');
+
+    // Criar botão mais visível para mobile
+    const manualButton = document.createElement('button');
+    manualButton.innerHTML = '🎵 Tocar Música de Celebração';
+    manualButton.className =
+      'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-4 rounded-full font-bold shadow-2xl text-lg animate-pulse';
+
+    // Adicionar fundo escuro para melhor visibilidade
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black bg-opacity-50 z-40';
+
+    manualButton.onclick = async () => {
+      try {
+        console.log('📱 Tentativa manual de reprodução no mobile...');
+
+        // Desbloqueio mais agressivo para mobile
+        this.celebrationMusic.muted = false;
+        this.celebrationMusic.volume = 0;
+        this.celebrationMusic.currentTime = 0;
+
+        await this.celebrationMusic.play();
+
+        // Fade in mais rápido para mobile
+        let volume = 0;
+        const targetVolume = 0.9; // Volume mais alto para mobile
+        const fadeIn = setInterval(() => {
+          volume += 0.1; // Fade mais rápido
+          if (volume >= targetVolume) {
+            volume = targetVolume;
+            clearInterval(fadeIn);
+          }
+          this.celebrationMusic.volume = volume;
+        }, 50);
+
+        // Remover overlay e botão após sucesso
+        overlay.remove();
+        manualButton.remove();
+        this.audioUnlocked = true;
+        console.log('✅ Música tocando via botão manual mobile!');
+      } catch (e) {
+        console.log('❌ Falha mesmo com botão manual mobile:', e);
+        manualButton.innerHTML = '❌ Erro - Tente novamente';
+        manualButton.className = manualButton.className.replace(
+          'from-pink-500 to-purple-600',
+          'from-red-500 to-red-700'
+        );
+      }
+    };
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(manualButton);
+
+    // Auto-remover após 30 segundos se não usado
+    setTimeout(() => {
+      if (manualButton.parentNode) {
+        overlay.remove();
+        manualButton.remove();
+      }
+    }, 30000);
   }
 
   initializeElements() {
@@ -2356,6 +2436,34 @@ class RevealExperience {
     // Iniciar música de celebração imediatamente usando método robusto
     console.log('🎉 Iniciando música de celebração na fase celebration...');
     this.playCelebrationMusic();
+
+    // Para mobile: adicionar listener para tentar tocar música com qualquer toque
+    if (this.isMobile) {
+      const tryPlayOnTouch = async (event) => {
+        if (this.celebrationMusic && this.celebrationMusic.paused) {
+          console.log('📱 Tentando reproduzir música com toque na tela...');
+          try {
+            this.celebrationMusic.volume = 0.8;
+            await this.celebrationMusic.play();
+            console.log('✅ Música iniciada com toque na tela!');
+            // Remover listener após sucesso
+            document.removeEventListener('touchstart', tryPlayOnTouch);
+            document.removeEventListener('click', tryPlayOnTouch);
+          } catch (e) {
+            console.log('⚠️ Não foi possível tocar com toque:', e);
+          }
+        }
+      };
+
+      document.addEventListener('touchstart', tryPlayOnTouch, { passive: true });
+      document.addEventListener('click', tryPlayOnTouch);
+
+      // Remover listeners após 10 segundos
+      setTimeout(() => {
+        document.removeEventListener('touchstart', tryPlayOnTouch);
+        document.removeEventListener('click', tryPlayOnTouch);
+      }, 10000);
+    }
 
     this.experienceScreen.innerHTML = `
             <div class="celebration-phase relative min-h-screen overflow-y-auto">
