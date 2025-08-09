@@ -561,6 +561,89 @@ class RevealExperience {
     document.body.appendChild(btn);
   }
 
+  async playCelebrationMusicDefinitive() {
+    console.log('🎵 MÉTODO DEFINITIVO - FORÇANDO MÚSICA DE CELEBRAÇÃO!');
+
+    if (!this.celebrationMusic) {
+      console.log('❌ Música de celebração não carregada');
+      return;
+    }
+
+    // Parar qualquer reprodução anterior
+    this.celebrationMusic.pause();
+    this.celebrationMusic.currentTime = 0;
+
+    try {
+      // ESTRATÉGIA 1: Reprodução direta (funciona se áudio já foi desbloqueado)
+      this.celebrationMusic.volume = this.isMobile ? 0.9 : 0.7;
+      await this.celebrationMusic.play();
+      console.log('✅ MÚSICA TOCANDO - MÉTODO DIRETO!');
+      return; // Sucesso - sair da função
+    } catch (directError) {
+      console.log('⚠️ Método direto falhou:', directError);
+
+      // ESTRATÉGIA 2: Desbloqueio agressivo para mobile
+      if (this.isMobile) {
+        try {
+          console.log('📱 Tentando desbloqueio agressivo...');
+
+          // Múltiplas tentativas de desbloqueio
+          for (let i = 0; i < 3; i++) {
+            this.celebrationMusic.muted = true;
+            this.celebrationMusic.volume = 0;
+            await this.celebrationMusic.play();
+            this.celebrationMusic.pause();
+            this.celebrationMusic.currentTime = 0;
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          // Tentar reprodução real
+          this.celebrationMusic.muted = false;
+          this.celebrationMusic.volume = 0.9;
+          await this.celebrationMusic.play();
+          console.log('✅ MÚSICA TOCANDO - DESBLOQUEIO AGRESSIVO!');
+          return;
+        } catch (mobileError) {
+          console.log('❌ Desbloqueio agressivo falhou:', mobileError);
+        }
+      }
+
+      // ESTRATÉGIA 3: Fallback com interação do usuário
+      console.log('🔘 Ativando fallback com botão...');
+      this.showCelebrationMusicButton();
+    }
+  }
+
+  showCelebrationMusicButton() {
+    // Remover botões existentes
+    const existingBtns = document.querySelectorAll('.celebration-music-btn');
+    existingBtns.forEach((btn) => btn.remove());
+
+    const btn = document.createElement('button');
+    btn.innerHTML = '🎵 Tocar Música de Celebração';
+    btn.className =
+      'celebration-music-btn fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-8 py-4 rounded-full font-bold text-xl shadow-2xl animate-bounce';
+
+    btn.onclick = async () => {
+      try {
+        this.celebrationMusic.volume = this.isMobile ? 0.9 : 0.7;
+        await this.celebrationMusic.play();
+        btn.remove();
+        console.log('✅ MÚSICA TOCANDO - BOTÃO MANUAL!');
+      } catch (e) {
+        console.log('❌ Erro mesmo com botão:', e);
+        btn.innerHTML = '❌ Erro - Tente novamente';
+      }
+    };
+
+    document.body.appendChild(btn);
+
+    // Auto-remover após 15 segundos
+    setTimeout(() => {
+      if (btn.parentNode) btn.remove();
+    }, 15000);
+  }
+
   showManualPlayButtonMobile() {
     console.log('📱 Mostrando botão manual otimizado para mobile');
 
@@ -814,11 +897,11 @@ class RevealExperience {
         - Transição p/ celebração: ${EXPERIENCE_CONFIG.timing.phases.reveal / 1000}s
         - 🎵 MÚSICA CELEBRAÇÃO (SINCRONIZADA): ${totalTimeUntilCelebration / 1000}s`);
 
-      // Agendar música de celebração baseada no timing EXATO
-      setTimeout(() => {
-        console.log('🎵 TEMPO EXATO ATINGIDO - Iniciando música de celebração...');
-        this.playCelebrationMusicWithTiming();
-      }, totalTimeUntilCelebration);
+      // DESABILITADO: Timing antigo (agora música toca diretamente na tela)
+      // setTimeout(() => {
+      //   console.log('🎵 TEMPO EXATO ATINGIDO - Iniciando música de celebração...');
+      //   this.playCelebrationMusicWithTiming();
+      // }, totalTimeUntilCelebration);
 
       // Habilitar áudio
       await this.initializeAudio();
@@ -2484,8 +2567,9 @@ class RevealExperience {
     // Parar TODOS os outros áudios antes da celebração
     this.stopAllAudioExceptCelebration();
 
-    // IMPORTANTE: NÃO forçar reprodução aqui - será feita pelo timing calculado
-    console.log('🎉 Fase celebration iniciada - música controlada por timing');
+    // SOLUÇÃO DEFINITIVA: Tocar música IMEDIATAMENTE quando tela aparece
+    console.log('🎉 Fase celebration iniciada - ACIONANDO MÚSICA IMEDIATAMENTE!');
+    this.playCelebrationMusicDefinitive();
 
     this.experienceScreen.innerHTML = `
             <div class="celebration-phase relative min-h-screen overflow-y-auto">
