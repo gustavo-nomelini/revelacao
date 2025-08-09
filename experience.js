@@ -72,51 +72,53 @@ class RevealExperience {
 
       if (!this.audioUnlocked && isValidTarget) {
         console.log('🔓 Tentando desbloquear áudio no mobile...');
-        
+
         try {
           // 1. Desbloquear AudioContext sintético primeiro
           if (this.soundGenerator && !this.soundGenerator.isInitialized) {
             await this.soundGenerator.initialize();
           }
-          
+
           if (this.soundGenerator?.audioContext?.state === 'suspended') {
             await this.soundGenerator.audioContext.resume();
           }
 
           // 2. Tentar desbloqueio com os arquivos de áudio
           const unlockPromises = [];
-          
+
           if (this.celebrationMusic) {
             this.celebrationMusic.volume = 0;
             this.celebrationMusic.muted = true;
-            const promise = this.celebrationMusic.play()
+            const promise = this.celebrationMusic
+              .play()
               .then(() => {
                 this.celebrationMusic.pause();
                 this.celebrationMusic.currentTime = 0;
                 this.celebrationMusic.muted = false;
                 console.log('✅ Música de celebração desbloqueada');
               })
-              .catch(e => console.log('❌ Falha ao desbloquear celebração:', e));
+              .catch((e) => console.log('❌ Falha ao desbloquear celebração:', e));
             unlockPromises.push(promise);
           }
 
           if (this.climaxMusic) {
             this.climaxMusic.volume = 0;
             this.climaxMusic.muted = true;
-            const promise = this.climaxMusic.play()
+            const promise = this.climaxMusic
+              .play()
               .then(() => {
                 this.climaxMusic.pause();
                 this.climaxMusic.currentTime = 0;
                 this.climaxMusic.muted = false;
                 console.log('✅ Música do clímax desbloqueada');
               })
-              .catch(e => console.log('❌ Falha ao desbloquear clímax:', e));
+              .catch((e) => console.log('❌ Falha ao desbloquear clímax:', e));
             unlockPromises.push(promise);
           }
 
           // Aguardar todas as tentativas de desbloqueio
           await Promise.allSettled(unlockPromises);
-          
+
           this.audioUnlocked = true;
           console.log('🎉 Áudio desbloqueado no mobile com sucesso!');
 
@@ -124,7 +126,6 @@ class RevealExperience {
           document.removeEventListener('touchstart', unlockAudio);
           document.removeEventListener('touchend', unlockAudio);
           document.removeEventListener('click', unlockAudio);
-          
         } catch (error) {
           console.log('❌ Erro ao desbloquear áudio:', error);
         }
@@ -207,7 +208,9 @@ class RevealExperience {
         if (this.soundGenerator.audioContext?.state === 'suspended') {
           await this.soundGenerator.audioContext.resume();
         }
-        console.log(`✅ SoundGenerator: ${this.soundGenerator.isInitialized}, Estado: ${this.soundGenerator.audioContext?.state}`);
+        console.log(
+          `✅ SoundGenerator: ${this.soundGenerator.isInitialized}, Estado: ${this.soundGenerator.audioContext?.state}`
+        );
       }
 
       // 2. Preparar arquivos de áudio sem reproduzir
@@ -218,7 +221,7 @@ class RevealExperience {
       }
 
       if (this.celebrationMusic) {
-        this.celebrationMusic.preload = 'auto'; 
+        this.celebrationMusic.preload = 'auto';
         this.celebrationMusic.volume = 0.7;
         console.log('✅ Música de celebração preparada');
       }
@@ -226,7 +229,6 @@ class RevealExperience {
       // 3. Marcar como preparado
       this.allAudiosPreAuthorized = true;
       console.log('🎉 Áudios preparados para reprodução!');
-      
     } catch (error) {
       console.log('❌ Erro na preparação:', error);
     }
@@ -279,7 +281,7 @@ class RevealExperience {
 
       this.climaxMusic.currentTime = 0;
       this.climaxMusic.volume = this.isMobile ? 0.9 : 0.8;
-      
+
       const playPromise = this.climaxMusic.play();
       if (playPromise) {
         await playPromise;
@@ -312,12 +314,12 @@ class RevealExperience {
 
       this.celebrationMusic.currentTime = 0;
       this.celebrationMusic.volume = 0;
-      
+
       const playPromise = this.celebrationMusic.play();
       if (playPromise) {
         await playPromise;
         console.log('✅ Música de celebração reproduzindo');
-        
+
         // Fade in suave
         let volume = 0;
         const fadeIn = setInterval(() => {
@@ -391,7 +393,7 @@ class RevealExperience {
     // Configurações otimizadas para compatibilidade mobile
     this.celebrationMusic.preload = 'auto';
     this.celebrationMusic.volume = this.isMobile ? 0.8 : 0.7;
-    
+
     // Adicionar listeners para monitoramento
     this.celebrationMusic.addEventListener('loadstart', () => {
       console.log('🎵 Iniciando carregamento da música de celebração');

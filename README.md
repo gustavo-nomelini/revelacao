@@ -5,18 +5,21 @@ Uma experiência interativa completa para revelação de gênero que vai fazer t
 ## ✨ Melhorias para Mobile (2025) 📱
 
 ### 🔧 Correções Críticas de Áudio
+
 - **Sistema de desbloqueio inteligente**: Desbloqueio automático de áudio em dispositivos móveis
 - **Reprodução confiável**: Método robusto para reproduzir músicas no momento exato
 - **Compatibilidade total**: Suporte aprimorado para iOS Safari e Android Chrome
 - **Gestão de AudioContext**: Prevenção de suspensão e retomada automática
 
 ### 🎵 Otimizações de Som
+
 - **Preload otimizado**: Carregamento antecipado mais eficiente
 - **Retry automático**: Sistema de tentativas para casos de falha
 - **Volume ajustado**: Níveis específicos para mobile vs desktop
 - **Limpeza de memória**: Gestão adequada de osciladores Web Audio API
 
 ### 📱 UX Mobile Aprimorada
+
 - **Meta tags específicas**: Configurações para web app mobile
 - **Prevenção de zoom**: Evita zoom acidental durante interações
 - **Touch otimizado**: Eventos de toque mais responsivos
@@ -226,18 +229,21 @@ colors: {
 ## 🔧 Solução de Problemas (Mobile)
 
 ### 🎵 Áudio não toca no celular?
-1. **Primeiro**: Certifique-se de clicar no botão "Entrar no Mistério" 
+
+1. **Primeiro**: Certifique-se de clicar no botão "Entrar no Mistério"
 2. **Volume**: Verifique se o volume está ligado e não está no modo silencioso
 3. **Permissões**: Se necessário, permita reprodução de áudio quando solicitado
 4. **Retry**: A aplicação tenta automaticamente várias vezes - aguarde
 5. **Recarregar**: Se ainda não funcionar, recarregue a página
 
 ### 🎶 Música fora de sincronia?
+
 - A aplicação tem sistema automático de sincronização
 - Aguarde alguns segundos, o áudio deve se ajustar
 - Sistema de retry integrado tenta corrigir automaticamente
 
 ### 📱 Performance no mobile
+
 - Use conexão Wi-Fi estável para melhor experiência
 - Feche outros apps para liberar memória
 - Mantenha o telefone plugado se a bateria estiver baixa
