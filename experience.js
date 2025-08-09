@@ -291,7 +291,7 @@ class RevealExperience {
         this.celebrationMusic.paused
       ) {
         console.log('� Verificação: Tentando tocar música de celebração...');
-        this.playCelebrationMusic();
+        // REMOVIDO: this.playCelebrationMusic(); - agora usa timing calculado
         clearInterval(checkCelebrationMusic);
       } else if (this.currentPhase !== 'celebration') {
         // Continuar verificando até chegar na celebração
@@ -504,6 +504,61 @@ class RevealExperience {
     };
 
     document.body.appendChild(manualButton);
+  }
+
+  async playCelebrationMusicWithTiming() {
+    console.log('🎵 EXECUTANDO MÚSICA DE CELEBRAÇÃO COM TIMING CALCULADO');
+
+    if (!this.celebrationMusic) {
+      console.log('❌ Música de celebração não carregada');
+      return;
+    }
+
+    try {
+      // Preparação simples e direta
+      this.celebrationMusic.pause();
+      this.celebrationMusic.currentTime = 0;
+
+      // Para mobile: tentar desbloqueio se necessário
+      if (this.isMobile && this.celebrationMusic.paused) {
+        console.log('📱 Desbloqueio específico para mobile...');
+        this.celebrationMusic.muted = true;
+        await this.celebrationMusic.play();
+        this.celebrationMusic.pause();
+        this.celebrationMusic.currentTime = 0;
+        this.celebrationMusic.muted = false;
+      }
+
+      // Reprodução direta
+      this.celebrationMusic.volume = this.isMobile ? 0.9 : 0.7;
+      await this.celebrationMusic.play();
+
+      console.log('✅ MÚSICA DE CELEBRAÇÃO TOCANDO - TIMING PERFEITO!');
+    } catch (error) {
+      console.log('❌ Erro no timing da música:', error);
+
+      // Fallback único: botão simples apenas se falhar
+      if (this.isMobile) {
+        this.showSimpleMusicButton();
+      }
+    }
+  }
+
+  showSimpleMusicButton() {
+    const btn = document.createElement('button');
+    btn.innerHTML = '🎵 Música';
+    btn.className =
+      'fixed top-4 right-4 z-50 bg-pink-500 text-white px-3 py-2 rounded-full font-bold';
+    btn.onclick = async () => {
+      try {
+        this.celebrationMusic.volume = 0.9;
+        await this.celebrationMusic.play();
+        btn.remove();
+      } catch (e) {
+        console.log('Erro manual:', e);
+      }
+    };
+    document.body.appendChild(btn);
   }
 
   showManualPlayButtonMobile() {
@@ -740,7 +795,7 @@ class RevealExperience {
       // Configurar reprodução automática de áudios
       this.scheduleAutoAudioPlayback();
 
-      // Calcular quando a música de celebração poderá tocar
+      // Calcular quando a música de celebração deverá tocar (baseado no tempo EXATO)
       const totalTimeUntilCelebration =
         EXPERIENCE_CONFIG.timing.countdown * 1000 +
         EXPERIENCE_CONFIG.timing.phases.mystery +
@@ -748,22 +803,18 @@ class RevealExperience {
         EXPERIENCE_CONFIG.timing.phases.duel +
         EXPERIENCE_CONFIG.timing.phases.reveal;
 
-      console.log(`Timing da experiência:
+      console.log(`⏰ Timing da experiência calculado:
         - Countdown: ${EXPERIENCE_CONFIG.timing.countdown}s
         - Mystery: ${EXPERIENCE_CONFIG.timing.phases.mystery / 1000}s
         - Buildup: ${EXPERIENCE_CONFIG.timing.phases.buildup / 1000}s  
         - Duel: ${EXPERIENCE_CONFIG.timing.phases.duel / 1000}s
         - Reveal: ${EXPERIENCE_CONFIG.timing.phases.reveal / 1000}s
-        - Total até celebração: ${totalTimeUntilCelebration / 1000}s`);
+        - 🎵 MÚSICA CELEBRAÇÃO EM: ${totalTimeUntilCelebration / 1000}s`);
 
-      // Permitir música apenas após o tempo total (com margem de segurança)
+      // Agendar música de celebração baseada no timing EXATO
       setTimeout(() => {
-        this.celebrationMusicAllowed = true;
-        console.log(
-          '🎵 Música de celebração LIBERADA após',
-          totalTimeUntilCelebration / 1000,
-          'segundos'
-        );
+        console.log('🎵 TEMPO EXATO ATINGIDO - Iniciando música de celebração...');
+        this.playCelebrationMusicWithTiming();
       }, totalTimeUntilCelebration);
 
       // Habilitar áudio
@@ -2430,40 +2481,8 @@ class RevealExperience {
     // Parar TODOS os outros áudios antes da celebração
     this.stopAllAudioExceptCelebration();
 
-    // Forçar permissão da música (caso esteja atrasada)
-    this.celebrationMusicAllowed = true;
-
-    // Iniciar música de celebração imediatamente usando método robusto
-    console.log('🎉 Iniciando música de celebração na fase celebration...');
-    this.playCelebrationMusic();
-
-    // Para mobile: adicionar listener para tentar tocar música com qualquer toque
-    if (this.isMobile) {
-      const tryPlayOnTouch = async (event) => {
-        if (this.celebrationMusic && this.celebrationMusic.paused) {
-          console.log('📱 Tentando reproduzir música com toque na tela...');
-          try {
-            this.celebrationMusic.volume = 0.8;
-            await this.celebrationMusic.play();
-            console.log('✅ Música iniciada com toque na tela!');
-            // Remover listener após sucesso
-            document.removeEventListener('touchstart', tryPlayOnTouch);
-            document.removeEventListener('click', tryPlayOnTouch);
-          } catch (e) {
-            console.log('⚠️ Não foi possível tocar com toque:', e);
-          }
-        }
-      };
-
-      document.addEventListener('touchstart', tryPlayOnTouch, { passive: true });
-      document.addEventListener('click', tryPlayOnTouch);
-
-      // Remover listeners após 10 segundos
-      setTimeout(() => {
-        document.removeEventListener('touchstart', tryPlayOnTouch);
-        document.removeEventListener('click', tryPlayOnTouch);
-      }, 10000);
-    }
+    // IMPORTANTE: NÃO forçar reprodução aqui - será feita pelo timing calculado
+    console.log('🎉 Fase celebration iniciada - música controlada por timing');
 
     this.experienceScreen.innerHTML = `
             <div class="celebration-phase relative min-h-screen overflow-y-auto">
@@ -3217,68 +3236,6 @@ class RevealExperience {
       // Recarregar a página (equivalente ao F5)
       window.location.reload();
     }, 300);
-  }
-  playCelebrationMusic() {
-    // Verificar se a música está permitida (baseado no timing da experiência)
-    if (!this.celebrationMusicAllowed) {
-      console.log('Música de celebração ainda não permitida - aguardando timing correto');
-      return;
-    }
-
-    if (this.celebrationMusic) {
-      // Reset audio to beginning
-      this.celebrationMusic.currentTime = 0;
-      this.celebrationMusic.volume = 0;
-
-      console.log(
-        `🎵 Iniciando música de celebração - Platform: ${this.isMobile ? 'MOBILE' : 'DESKTOP'}`
-      );
-
-      // CORREÇÃO: Tentar autoplay para ambas as plataformas, com fallback para mobile
-      const playPromise = this.celebrationMusic.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log(
-              `✅ Música de celebração iniciada automaticamente (${
-                this.isMobile ? 'MOBILE' : 'DESKTOP'
-              })`
-            );
-            // Aumentar volume gradualmente
-            let volume = 0;
-            const fadeIn = setInterval(() => {
-              volume += 0.05;
-              if (volume >= 0.7) {
-                volume = 0.7;
-                clearInterval(fadeIn);
-              }
-              this.celebrationMusic.volume = volume;
-            }, 100);
-          })
-          .catch((error) => {
-            console.log(`❌ Autoplay bloqueado (${this.isMobile ? 'MOBILE' : 'DESKTOP'}):`, error);
-
-            if (this.isMobile) {
-              // MOBILE: Fallback para controle manual
-              console.log('📱 Música preparada para controle manual via botão');
-              this.celebrationMusic.volume = 0.7;
-            } else {
-              // DESKTOP: Tentar novamente após pequeno delay
-              setTimeout(() => {
-                this.celebrationMusic.volume = 0.7;
-                this.celebrationMusic
-                  .play()
-                  .then(() => console.log('✅ Segunda tentativa desktop bem-sucedida'))
-                  .catch(() => console.log('❌ Segunda tentativa desktop falhou'));
-              }, 500);
-            }
-          });
-      } else {
-        // Fallback se play() não retornar Promise
-        console.log('⚠️ Play não retornou Promise, definindo volume padrão');
-        this.celebrationMusic.volume = 0.7;
-      }
-    }
   }
 
   stopAllAudioExceptCelebration() {
