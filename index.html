@@ -207,6 +207,8 @@
         <button
           id="enterButton"
           class="mystery-button poppins bg-white/20 backdrop-blur-sm text-white px-8 py-4 rounded-full text-xl font-semibold border-2 border-white/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          style="pointer-events: auto; z-index: 100; position: relative"
+          onclick="window.startExperienceManual && window.startExperienceManual()"
         >
           <span id="buttonText">Entrar no Mistério</span>
           <span class="ml-2">✨</span>
@@ -242,6 +244,43 @@
     <script src="experience.js"></script>
 
     <script>
+      // Script de debug/fallback
+      window.addEventListener('load', () => {
+        console.log('🌐 Página totalmente carregada');
+
+        // Verificar se botão existe
+        const button = document.getElementById('enterButton');
+        console.log('🔍 Botão encontrado:', !!button);
+
+        if (button) {
+          // Adicionar listener direto como fallback
+          button.addEventListener('click', function (e) {
+            console.log('🖱️ Clique direto detectado!');
+
+            // Tentar via função global primeiro
+            if (window.startExperienceManual) {
+              console.log('✅ Usando função global');
+              window.startExperienceManual();
+            } else if (window.revelationExperience) {
+              console.log('✅ Usando instância global');
+              window.revelationExperience.startExperience();
+            } else {
+              console.log('⚠️ Nenhuma instância encontrada, aguardando...');
+              // Aguardar um pouco e tentar novamente
+              setTimeout(() => {
+                if (window.revelationExperience) {
+                  window.revelationExperience.startExperience();
+                } else {
+                  console.log('❌ Instância ainda não disponível após timeout');
+                }
+              }, 1000);
+            }
+          });
+
+          console.log('✅ Listener de fallback adicionado ao botão');
+        }
+      });
+
       // Função para criar partículas da landing page
       function createParticles() {
         const particlesContainer = document.getElementById('particles');

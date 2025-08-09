@@ -39,6 +39,9 @@ class RevealExperience {
     this.allAudiosPreAuthorized = false;
     this.experienceStarted = false;
 
+    console.log('🎬 Construtor RevealExperience chamado');
+    console.log('📱 Mobile detectado:', this.isMobile);
+
     this.initializeElements();
     this.bindEvents();
     this.loadCelebrationMusic();
@@ -47,6 +50,27 @@ class RevealExperience {
     // Preparações específicas para mobile
     if (this.isMobile) {
       this.prepareMobileAudio();
+    }
+
+    console.log('✅ Construtor RevealExperience concluído');
+  }
+
+  // Método de debug para testar manualmente
+  debugButton() {
+    console.log('🔍 DEBUG: Estado do botão');
+    console.log('Botão encontrado:', !!this.enterButton);
+    console.log('Experiência iniciada:', this.experienceStarted);
+
+    if (this.enterButton) {
+      console.log('Botão habilitado:', !this.enterButton.disabled);
+      console.log('Estilo do botão:', this.enterButton.style.cssText);
+      console.log('Classes do botão:', this.enterButton.className);
+    }
+
+    // Tentar forçar início da experiência
+    if (!this.experienceStarted) {
+      console.log('🚀 Forçando início da experiência via debug...');
+      this.startExperience();
     }
   }
 
@@ -340,49 +364,82 @@ class RevealExperience {
   }
 
   initializeElements() {
+    console.log('🔧 Inicializando elementos...');
     this.landingScreen = document.getElementById('landingScreen');
     this.experienceScreen = document.getElementById('experienceScreen');
     this.enterButton = document.getElementById('enterButton');
     this.buttonText = document.getElementById('buttonText');
     this.countdownElement = document.getElementById('countdown');
+
+    // Debug: verificar se elementos foram encontrados
+    console.log('🔍 Elementos encontrados:', {
+      landingScreen: !!this.landingScreen,
+      experienceScreen: !!this.experienceScreen,
+      enterButton: !!this.enterButton,
+      buttonText: !!this.buttonText,
+      countdownElement: !!this.countdownElement,
+    });
+
+    if (!this.enterButton) {
+      console.error('❌ ERRO: Botão de entrada não encontrado!');
+    }
   }
 
   bindEvents() {
+    console.log('🔗 Vinculando eventos...');
+
+    // Verificar se o botão existe antes de adicionar o evento
+    if (!this.enterButton) {
+      console.error('❌ ERRO: Não é possível vincular eventos - botão não encontrado!');
+      return;
+    }
+
+    console.log('✅ Botão encontrado, adicionando evento de clique...');
+
     // Evento específico para o botão de entrada
     this.enterButton.addEventListener('click', (event) => {
+      console.log('🖱️ Botão clicado!');
       event.preventDefault();
       event.stopPropagation();
       this.startExperience();
     });
 
     // Prevenir cliques acidentais em outras áreas da tela inicial
-    this.landingScreen.addEventListener('click', (event) => {
-      // Só permitir cliques no botão de entrada
-      if (!event.target.closest('#enterButton')) {
-        event.preventDefault();
-        event.stopPropagation();
+    if (this.landingScreen) {
+      this.landingScreen.addEventListener('click', (event) => {
+        // Só permitir cliques no botão de entrada
+        if (!event.target.closest('#enterButton')) {
+          event.preventDefault();
+          event.stopPropagation();
 
-        // Feedback visual para cliques fora do botão
-        const button = this.enterButton;
-        button.style.transform = 'scale(1.05)';
-        button.style.boxShadow = '0 0 20px rgba(255, 105, 180, 0.8)';
+          console.log('🖱️ Clique fora do botão - dando feedback visual');
 
-        setTimeout(() => {
-          button.style.transform = '';
-          button.style.boxShadow = '';
-        }, 200);
+          // Feedback visual para cliques fora do botão
+          const button = this.enterButton;
+          if (button) {
+            button.style.transform = 'scale(1.05)';
+            button.style.boxShadow = '0 0 20px rgba(255, 105, 180, 0.8)';
 
-        // Vibração de feedback no mobile
-        if (this.isMobile) {
-          this.vibrate([50]);
+            setTimeout(() => {
+              button.style.transform = '';
+              button.style.boxShadow = '';
+            }, 200);
+
+            // Vibração de feedback no mobile
+            if (this.isMobile) {
+              this.vibrate([50]);
+            }
+          }
         }
-      }
-    });
+      });
+    }
 
     // Detectar se é mobile para vibração
     this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
+
+    console.log('🔗 Eventos vinculados com sucesso!');
   }
 
   loadCelebrationMusic() {
@@ -444,26 +501,34 @@ class RevealExperience {
   }
 
   async startExperience() {
+    console.log('🚀 INICIANDO EXPERIÊNCIA...');
+
     // Prevenir múltiplas execuções
     if (this.experienceStarted) {
-      console.log('Experiência já foi iniciada, ignorando clique duplicado');
+      console.log('⚠️ Experiência já foi iniciada, ignorando clique duplicado');
       return;
     }
+
+    console.log('✅ Primeira execução, prosseguindo...');
 
     // Garantir que todos os áudios estão parados antes de iniciar
     this.stopAllAudio();
 
     this.experienceStarted = true;
+    console.log('🎯 Marcado como iniciado');
 
     try {
       // Marcar o início da experiência
       this.experienceStartTime = Date.now();
+      console.log('⏰ Tempo de início marcado');
 
       // Preparar áudios para mobile
       if (this.isMobile) {
+        console.log('📱 Dispositivo mobile detectado, preparando áudios...');
         await this.preAuthorizeMobileAudio();
         // Aguardar um momento para garantir que a preparação foi concluída
         await new Promise((resolve) => setTimeout(resolve, 300));
+        console.log('✅ Áudios mobile preparados');
       }
 
       // Configurar reprodução automática de áudios
@@ -3143,8 +3208,59 @@ class RevealExperience {
 
 // Inicializar quando a página carregar
 document.addEventListener('DOMContentLoaded', () => {
-  const experience = new RevealExperience();
+  console.log('📄 DOM carregado, inicializando experiência...');
+
+  try {
+    const experience = new RevealExperience();
+    console.log('✅ Experiência inicializada com sucesso!');
+
+    // Adicionar uma referência global para debug
+    window.revelationExperience = experience;
+
+    // Função global para fallback manual
+    window.startExperienceManual = () => {
+      console.log('🆘 Função manual chamada!');
+      if (experience && !experience.experienceStarted) {
+        experience.startExperience();
+      } else if (experience && experience.experienceStarted) {
+        console.log('⚠️ Experiência já iniciada');
+      } else {
+        console.log('❌ Experiência não encontrada');
+      }
+    };
+
+    // Função global para debug
+    window.debugButton = () => {
+      if (experience && experience.debugButton) {
+        experience.debugButton();
+      }
+    };
+  } catch (error) {
+    console.error('❌ ERRO ao inicializar experiência:', error);
+  }
 });
+
+// Fallback adicional - tentar novamente após um pequeno delay se algo falhar
+setTimeout(() => {
+  if (!window.revelationExperience) {
+    console.log('⚠️ Tentativa de inicialização via fallback...');
+    try {
+      const experience = new RevealExperience();
+      window.revelationExperience = experience;
+      console.log('✅ Experiência inicializada via fallback!');
+
+      // Função global para fallback manual
+      window.startExperienceManual = () => {
+        console.log('🆘 Função manual chamada via fallback!');
+        if (experience && !experience.experienceStarted) {
+          experience.startExperience();
+        }
+      };
+    } catch (error) {
+      console.error('❌ ERRO no fallback de inicialização:', error);
+    }
+  }
+}, 1000);
 
 // Prevenir zoom no mobile
 document.addEventListener('touchstart', function (event) {
